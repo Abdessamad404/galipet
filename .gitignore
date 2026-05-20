@@ -1,0 +1,24 @@
+# Guide interne — ne pas versionner
+GUIDE.md
+
+# Dépendances
+node_modules/
+
+# Build
+dist/
+
+# Variables d'environnement
+.env
+*.env.local
+
+# Expo
+.expo/
+frontend/.expo/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

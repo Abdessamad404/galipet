@@ -1,0 +1,40 @@
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import dotenv from "dotenv";
+
+import authRoutes from "./routes/auth.routes";
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// --- Sécurité & parsing ---
+app.use(helmet()); // Headers HTTP sécurisés
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "*",
+    credentials: true,
+  }),
+);
+app.use(express.json()); // Parse les bodies JSON
+
+// --- Routes ---
+app.use("/api/auth", authRoutes);
+
+// --- Health check ---
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// --- Erreurs non gérées ---
+app.use((_req, res) => {
+  res.status(404).json({ error: "Route introuvable" });
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Serveur Gali'Pet démarré sur http://localhost:${PORT}`);
+});
+
+export default app;
