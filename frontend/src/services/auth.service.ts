@@ -7,22 +7,22 @@ import { AuthResponse, LoginPayload, Profile, RegisterPayload } from '../types'
 
 export const authService = {
   async register(payload: RegisterPayload): Promise<AuthResponse> {
-    const { data } = await api.post<AuthResponse>('/api/auth/register', payload)
+    const { data } = await api.post<AuthResponse>('/auth/register', payload)
     return data
   },
 
   async login(payload: LoginPayload): Promise<AuthResponse> {
-    const { data } = await api.post<AuthResponse>('/api/auth/login', payload)
+    const { data } = await api.post<AuthResponse>('/auth/login', payload)
     return data
   },
 
   async forgotPassword(email: string): Promise<{ message: string }> {
-    const { data } = await api.post<{ message: string }>('/api/auth/forgot-password', { email })
+    const { data } = await api.post<{ message: string }>('/auth/forgot-password', { email })
     return data
   },
 
   async getMe(): Promise<Profile> {
-    const { data } = await api.get<{ profile: Profile }>('/api/auth/me')
+    const { data } = await api.get<{ profile: Profile }>('/auth/me')
     return data.profile
   },
 }

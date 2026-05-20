@@ -48,7 +48,8 @@ export async function register(input: RegisterInput): Promise<{ token: string; p
   if (profileError || !profile) {
     // Rollback : on supprime l'utilisateur Auth si le profil échoue
     await supabase.auth.admin.deleteUser(authData.user.id)
-    throw new Error('Erreur lors de la création du profil')
+    console.error('[register] profileError:', profileError)
+    throw new Error(profileError?.message || 'Erreur lors de la création du profil')
   }
 
   // 3. Générer le JWT
