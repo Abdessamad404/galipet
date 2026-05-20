@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth.routes";
 import profileRoutes from "./routes/profile.routes";
+import petRoutes from "./routes/pet.routes";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use(express.json()); // Parse les bodies JSON
 // --- Routes ---
 app.use("/api/auth", authRoutes);
 app.use("/api/profiles", profileRoutes);
+app.use("/api/pets", petRoutes);
 
 // --- Health check ---
 app.get("/health", (_req, res) => {

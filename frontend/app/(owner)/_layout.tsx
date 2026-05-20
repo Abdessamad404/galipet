@@ -50,6 +50,9 @@ export default function OwnerLayout() {
           tabBarIcon: ({ color, size }) => <Menu size={size} color={color} />,
         }}
       />
+      {/* Écrans hors tab bar — accessibles via navigation mais sans onglet */}
+      <Tabs.Screen name="mes-animaux/nouveau"  options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="mes-animaux/[id]"     options={{ href: null, headerShown: false }} />
     </Tabs>
   )
 }

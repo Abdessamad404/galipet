@@ -65,6 +65,35 @@ export interface ProAboutQA {
   created_at: string
 }
 
+export interface Pet {
+  id: string
+  owner_id: string
+  name: string
+  species: string
+  breed: string | null
+  age: number | null
+  weight: number | null
+  size: 'small' | 'medium' | 'large' | null
+  coat_type: 'short' | 'medium' | 'long' | 'hairless' | null
+  main_photo_url: string | null
+  gallery_urls: string[]
+  allergies: string | null
+  vaccinations: string[]
+  health_doc_urls: string[]
+  has_lof: boolean
+  lof_info: string | null
+  personality_social_desc: string | null
+  personality_social_tags: string[]
+  personality_sociability_desc: string | null
+  personality_sociability_tags: string[]
+  personality_learning_desc: string | null
+  personality_learning_tags: string[]
+  personal_note: string | null
+  pro_note: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface AuthResponse {
   message: string
   token: string
