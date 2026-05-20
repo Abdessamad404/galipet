@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -37,6 +37,8 @@ const ROLES: { value: Role; label: string; description: string }[] = [
 
 export default function RegisterScreen() {
   const { register, isLoading, error, clearError } = useAuthStore()
+
+  useEffect(() => { clearError() }, [])
 
   const [step, setStep] = useState<1 | 2>(1)
   const [role, setRole] = useState<Role | null>(null)

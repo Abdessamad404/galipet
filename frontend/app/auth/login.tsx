@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -17,6 +17,10 @@ import { Colors, Typography, Spacing, Radius } from '@/constants/theme'
 
 export default function LoginScreen() {
   const { login, isLoading, error, clearError } = useAuthStore()
+
+  // Nettoie l'erreur dès que l'écran est monté — évite qu'une erreur d'un autre écran
+  // (ex: register) reste affichée ici, et vice-versa.
+  useEffect(() => { clearError() }, [])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

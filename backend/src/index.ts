@@ -4,6 +4,7 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth.routes";
+import profileRoutes from "./routes/profile.routes";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use(express.json()); // Parse les bodies JSON
 
 // --- Routes ---
 app.use("/api/auth", authRoutes);
+app.use("/api/profiles", profileRoutes);
 
 // --- Health check ---
 app.get("/health", (_req, res) => {
