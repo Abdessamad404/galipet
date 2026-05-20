@@ -8,6 +8,7 @@ import { Camera, CheckCircle } from 'lucide-react-native'
 import { useAuthStore } from '@/store/authStore'
 import { profileService } from '@/services/profile.service'
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme'
+import DateInput from '@/components/DateInput'
 
 // Écran profil owner — informations personnelles + avatar
 // Le toggle Aperçu/Profil n'est pertinent que pour les pros (F02 pro)
@@ -142,12 +143,10 @@ export default function OwnerProfileScreen() {
           keyboardType="phone-pad"
         />
 
-        <Field
+        <DateInput
           label="Date de naissance"
           value={birthDate}
-          onChangeText={setBirthDate}
-          placeholder="1990-01-15"
-          hint="Format : AAAA-MM-JJ"
+          onChange={setBirthDate}
         />
 
         <Field

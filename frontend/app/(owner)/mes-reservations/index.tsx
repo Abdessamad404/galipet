@@ -44,10 +44,16 @@ export default function MesReservationsScreen() {
   }
 
   async function handleCancel(id: string) {
+    const booking = bookings.find((b) => b.id === id)
+    const isAccepted = booking?.status === 'accepted'
+    const msg = isAccepted
+      ? 'Le professionnel a déjà accepté votre demande. Annuler quand même ?'
+      : 'Annuler cette réservation ?'
+
     const confirm = Platform.OS === 'web'
-      ? window.confirm('Annuler cette réservation ?')
+      ? window.confirm(msg)
       : await new Promise<boolean>((resolve) =>
-          Alert.alert('Annuler', 'Annuler cette réservation ?', [
+          Alert.alert('Annuler la réservation', msg, [
             { text: 'Non', style: 'cancel', onPress: () => resolve(false) },
             { text: 'Oui, annuler', style: 'destructive', onPress: () => resolve(true) },
           ])

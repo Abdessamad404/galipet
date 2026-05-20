@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, ActivityIndicator, Alert, Image, Modal, Platform,
 } from 'react-native'
+import DateInput from '@/components/DateInput'
 import * as ImagePicker from 'expo-image-picker'
 import { Camera, CheckCircle, Plus, Trash2 } from 'lucide-react-native'
 import { useAuthStore } from '@/store/authStore'
@@ -246,7 +247,7 @@ export default function ProProfileScreen() {
         </View>
         <Field label="Email" value={profile?.email ?? ''} onChangeText={() => {}} placeholder="" editable={false} hint="Non modifiable" />
         <Field label="Téléphone" value={phone} onChangeText={setPhone} placeholder="06 12 34 56 78" keyboardType="phone-pad" />
-        <Field label="Date de naissance" value={birthDate} onChangeText={setBirthDate} placeholder="1990-01-15" hint="Format : AAAA-MM-JJ" />
+        <DateInput label="Date de naissance" value={birthDate} onChange={setBirthDate} />
         <Field label="Adresse" value={address} onChangeText={setAddress} placeholder="12 rue des Lilas" />
         <Field label="Ville" value={city} onChangeText={setCity} placeholder="Paris" />
       </SectionCard>

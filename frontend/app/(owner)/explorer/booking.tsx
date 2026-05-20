@@ -9,6 +9,8 @@ import { bookingService } from '@/services/booking.service'
 import { petService } from '@/services/pet.service'
 import { Pet } from '@/types'
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme'
+import DateInput from '@/components/DateInput'
+import TimeInput from '@/components/TimeInput'
 
 const SERVICES = [
   { key: 'grooming',  label: '✂️ Toilettage' },
@@ -41,16 +43,9 @@ export default function BookingScreen() {
 
   function validate() {
     const errors: Record<string, string> = {}
-    if (!service)      errors.service = 'Choisissez un service'
-    if (!date.trim())  errors.date    = 'Date requise (ex: 2025-06-15)'
-    if (!time.trim())  errors.time    = 'Heure requise (ex: 14:30)'
-    // Validation basique du format date
-    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date.trim())) {
-      errors.date = 'Format invalide — utilisez AAAA-MM-JJ'
-    }
-    if (time && !/^\d{2}:\d{2}$/.test(time.trim())) {
-      errors.time = 'Format invalide — utilisez HH:MM'
-    }
+    if (!service)  errors.service = 'Choisissez un service'
+    if (!date)     errors.date    = 'Sélectionnez une date'
+    if (!time)     errors.time    = 'Sélectionnez une heure'
     setFieldErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -160,30 +155,20 @@ export default function BookingScreen() {
             <Text style={styles.sectionTitle}>DATE & HEURE</Text>
           </View>
           <View style={styles.row}>
-            <View style={{ flex: 1, gap: Spacing.xs }}>
-              <Text style={styles.label}>Date *</Text>
-              <TextInput
-                style={[styles.input, fieldErrors.date && styles.inputError]}
-                value={date}
-                onChangeText={setDate}
-                placeholder="2025-06-15"
-                placeholderTextColor={Colors.textMuted}
-                keyboardType="numeric"
-              />
-              {fieldErrors.date && <Text style={styles.fieldError}>{fieldErrors.date}</Text>}
-            </View>
-            <View style={{ flex: 1, gap: Spacing.xs }}>
-              <Text style={styles.label}>Heure *</Text>
-              <TextInput
-                style={[styles.input, fieldErrors.time && styles.inputError]}
-                value={time}
-                onChangeText={setTime}
-                placeholder="14:30"
-                placeholderTextColor={Colors.textMuted}
-                keyboardType="numeric"
-              />
-              {fieldErrors.time && <Text style={styles.fieldError}>{fieldErrors.time}</Text>}
-            </View>
+            <DateInput
+              label="Date *"
+              value={date}
+              onChange={setDate}
+              error={fieldErrors.date}
+              style={{ flex: 1 }}
+            />
+            <TimeInput
+              label="Heure *"
+              value={time}
+              onChange={setTime}
+              error={fieldErrors.time}
+              style={{ flex: 1 }}
+            />
           </View>
         </View>
 
