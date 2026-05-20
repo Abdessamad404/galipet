@@ -57,11 +57,22 @@ export async function getPublicProfile(profileId: string): Promise<
   }
 }
 
+/** Capitalise la première lettre, met le reste en minuscule */
+function capitalizeName(name: string): string {
+  return name.trim().charAt(0).toUpperCase() + name.trim().slice(1).toLowerCase()
+}
+
 /** Mise à jour partielle du profil (PATCH) */
 export async function updateProfile(userId: string, input: UpdateProfileInput): Promise<Profile> {
+  const sanitized = {
+    ...input,
+    ...(input.first_name && { first_name: capitalizeName(input.first_name) }),
+    ...(input.last_name  && { last_name:  capitalizeName(input.last_name)  }),
+  }
+
   const { data, error } = await supabase
     .from('profiles')
-    .update(input)
+    .update(sanitized)
     .eq('id', userId)
     .select()
     .single()

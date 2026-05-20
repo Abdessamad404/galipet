@@ -40,7 +40,7 @@ export const profileService = {
 
     // Ne pas définir Content-Type manuellement — Axios le fait automatiquement avec le bon boundary.
     // L'écraser manuellement casse le multipart (boundary manquant → 400 côté serveur).
-    const { data } = await api.post<{ profile: Profile }>('/profiles/me/avatar', formData)
+    const { data } = await api.post<{ profile: Profile }>('/profiles/me/avatar', formData, { timeout: 60000 })
     return data.profile
   },
 
@@ -55,7 +55,7 @@ export const profileService = {
       formData.append('photo', { uri, type: 'image/jpeg', name: 'photo.jpg' } as any)
     }
 
-    const { data } = await api.post<{ photos: string[] }>('/profiles/me/activity-photos', formData)
+    const { data } = await api.post<{ photos: string[] }>('/profiles/me/activity-photos', formData, { timeout: 60000 })
     return data.photos
   },
 

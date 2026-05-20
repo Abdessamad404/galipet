@@ -1,9 +1,13 @@
-import { Router } from 'express'
-import { getNearbyProfessionals } from '../controllers/professional.controller'
+import { Router } from "express";
+import {
+  getNearbyProfessionals,
+  getProPublicProfile,
+} from "../controllers/professional.controller";
 
-const router = Router()
+const router = Router();
 
-// Public — pas besoin d'être connecté pour chercher des pros
-router.get('/nearby', getNearbyProfessionals)
+// Public — pas besoin d'être connecté
+router.get("/nearby", getNearbyProfessionals);
+router.get("/:id", getProPublicProfile);
 
-export default router
+export default router;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  StyleSheet, ActivityIndicator, Alert, Image,
+  StyleSheet, ActivityIndicator, Alert, Image, Modal, Platform,
 } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { Camera, CheckCircle, Plus, Trash2 } from 'lucide-react-native'
@@ -56,6 +56,12 @@ export default function ProProfileScreen() {
   const [certifications, setCertifications] = useState<Certification[]>([])
   const [aboutQA, setAboutQA]               = useState<ProAboutQA[]>([])
   const [loadingExtra, setLoadingExtra]     = useState(true)
+
+  // Modal ajout certification
+  const [certModalVisible, setCertModalVisible] = useState(false)
+  const [certModalTitle, setCertModalTitle]     = useState('')
+  const [certModalDesc, setCertModalDesc]       = useState('')
+  const [certModalLoading, setCertModalLoading] = useState(false)
 
   useEffect(() => {
     if (profile) {
@@ -169,20 +175,29 @@ export default function ProProfileScreen() {
     ])
   }
 
-  async function handleAddCert() {
-    Alert.prompt(
-      'Nouvelle certification',
-      'Titre du diplôme ou certification :',
-      async (title) => {
-        if (!title?.trim()) return
-        try {
-          const cert = await profileService.createCertification({ title: title.trim() })
-          setCertifications((prev) => [...prev, cert])
-        } catch {
-          Alert.alert('Erreur', 'Impossible d\'ajouter la certification.')
-        }
-      }
-    )
+  function handleAddCert() {
+    setCertModalTitle('')
+    setCertModalDesc('')
+    setCertModalVisible(true)
+  }
+
+  async function handleCertModalSubmit() {
+    if (!certModalTitle.trim()) return
+    setCertModalLoading(true)
+    try {
+      const cert = await profileService.createCertification({
+        title: certModalTitle.trim(),
+        description: certModalDesc.trim() || undefined,
+      })
+      setCertifications((prev) => [...prev, cert])
+      setCertModalVisible(false)
+    } catch {
+      const msg = 'Impossible d\'ajouter la certification.'
+      if (Platform.OS === 'web') window.alert(msg)
+      else Alert.alert('Erreur', msg)
+    } finally {
+      setCertModalLoading(false)
+    }
   }
 
   async function handleDeleteQA(id: string) {
@@ -348,6 +363,64 @@ export default function ProProfileScreen() {
         )}
       </SectionCard>
 
+      {/* Modal ajout certification */}
+      <Modal
+        visible={certModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCertModalVisible(false)}
+      >
+        <View style={modal.overlay}>
+          <View style={modal.box}>
+            <Text style={modal.title}>Nouvelle certification</Text>
+
+            <View style={modal.field}>
+              <Text style={modal.label}>Titre *</Text>
+              <TextInput
+                style={modal.input}
+                value={certModalTitle}
+                onChangeText={setCertModalTitle}
+                placeholder="Ex : Certificat de toilettage canin"
+                placeholderTextColor={Colors.textMuted}
+                autoFocus
+              />
+            </View>
+
+            <View style={modal.field}>
+              <Text style={modal.label}>Description (optionnel)</Text>
+              <TextInput
+                style={modal.input}
+                value={certModalDesc}
+                onChangeText={setCertModalDesc}
+                placeholder="Organisme, détails..."
+                placeholderTextColor={Colors.textMuted}
+              />
+            </View>
+
+            <View style={modal.actions}>
+              <TouchableOpacity
+                style={modal.cancelBtn}
+                onPress={() => setCertModalVisible(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={modal.cancelText}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[modal.confirmBtn, (!certModalTitle.trim() || certModalLoading) && modal.btnDisabled]}
+                onPress={handleCertModalSubmit}
+                disabled={!certModalTitle.trim() || certModalLoading}
+                activeOpacity={0.8}
+              >
+                {certModalLoading
+                  ? <ActivityIndicator color={Colors.textInverse} size="small" />
+                  : <Text style={modal.confirmText}>Ajouter</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Bouton sauvegarder */}
       <TouchableOpacity
         style={[styles.saveButton, isLoading && styles.saveButtonDisabled]}
@@ -506,4 +579,32 @@ const styles = StyleSheet.create({
   saveButtonDisabled: { opacity: 0.6 },
   saveButtonText: { color: Colors.textInverse, fontSize: Typography.base, fontWeight: Typography.semibold },
   savedRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+})
+
+const modal = StyleSheet.create({
+  overlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center', justifyContent: 'center',
+    padding: Spacing['2xl'],
+  },
+  box: {
+    width: '100%', maxWidth: 400,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.xl, padding: Spacing.xl, gap: Spacing.base,
+    ...Shadow.lg,
+  },
+  title: { fontSize: Typography.lg, fontWeight: Typography.bold, color: Colors.textPrimary },
+  field: { gap: Spacing.xs },
+  label: { fontSize: Typography.sm, fontWeight: Typography.medium, color: Colors.textPrimary },
+  input: {
+    backgroundColor: Colors.surfaceAlt, borderWidth: 1, borderColor: Colors.border,
+    borderRadius: Radius.md, paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md, fontSize: Typography.base, color: Colors.textPrimary,
+  },
+  actions:    { flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.xs },
+  cancelBtn:  { flex: 1, paddingVertical: Spacing.md, alignItems: 'center', borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border },
+  cancelText: { fontSize: Typography.base, color: Colors.textSecondary, fontWeight: Typography.medium },
+  confirmBtn: { flex: 1, paddingVertical: Spacing.md, alignItems: 'center', borderRadius: Radius.md, backgroundColor: Colors.primary },
+  confirmText: { fontSize: Typography.base, color: Colors.textInverse, fontWeight: Typography.semibold },
+  btnDisabled: { opacity: 0.5 },
 })

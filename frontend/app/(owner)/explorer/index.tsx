@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Platform, Image, Animated,
 } from 'react-native'
 import * as Location from 'expo-location'
+import { router } from 'expo-router'
 import { MapPin, Navigation, ChevronRight, X } from 'lucide-react-native'
 import { professionalService, ProfessionalNearby } from '@/services/professional.service'
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme'
@@ -62,21 +63,41 @@ export default function ExplorerScreen() {
     setLoading(true)
     setError(null)
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') {
-        setError('Autorisation de localisation refusée. Activez la géolocalisation pour trouver des pros près de vous.')
-        setLoading(false)
-        return
-      }
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
-      const coords = { lat: loc.coords.latitude, lng: loc.coords.longitude }
+      const coords = await getCoords()
       setLocation(coords)
       await loadPros(coords)
-    } catch {
-      setError('Impossible de récupérer votre position.')
+    } catch (err: any) {
+      setError(err?.message ?? 'Impossible de récupérer votre position.')
     } finally {
       setLoading(false)
     }
+  }
+
+  async function getCoords(): Promise<{ lat: number; lng: number }> {
+    // Sur web : l'API navigator.geolocation est plus fiable qu'expo-location
+    if (Platform.OS === 'web') {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error('Géolocalisation non supportée par ce navigateur.'))
+          return
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          (err) => reject(new Error(`Localisation refusée : ${err.message}`)),
+          { timeout: 10000, enableHighAccuracy: false }
+        )
+      })
+    }
+
+    // Sur mobile : expo-location
+    const { status } = await Location.requestForegroundPermissionsAsync()
+    if (status !== 'granted') {
+      throw new Error('Autorisation de localisation refusée. Activez la géolocalisation pour trouver des pros près de vous.')
+    }
+    let loc = await Location.getLastKnownPositionAsync()
+    if (!loc) loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
+    if (!loc) throw new Error('Position indisponible')
+    return { lat: loc.coords.latitude, lng: loc.coords.longitude }
   }
 
   async function loadPros(coords?: { lat: number; lng: number }) {
@@ -193,7 +214,7 @@ function ProDetailCard({ pro, onClose }: { pro: ProfessionalNearby; onClose: () 
           )}
         </View>
 
-        <View style={{ flex: 1 }}>
+        <TouchableOpacity style={{ flex: 1 }} onPress={() => router.push(`/(owner)/explorer/${pro.id}`)} activeOpacity={0.7}>
           <Text style={detail.name}>{pro.first_name} {pro.last_name}</Text>
           {pro.company_name && <Text style={detail.company}>{pro.company_name}</Text>}
           {pro.title && <Text style={detail.title}>{pro.title}</Text>}
@@ -203,9 +224,11 @@ function ProDetailCard({ pro, onClose }: { pro: ProfessionalNearby; onClose: () 
               {pro.city ? `${pro.city} · ` : ''}{pro.distance_km.toFixed(1)} km
             </Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
-        <ChevronRight size={18} color={Colors.textMuted} />
+        <TouchableOpacity onPress={() => router.push(`/(owner)/explorer/${pro.id}`)} activeOpacity={0.7}>
+          <ChevronRight size={18} color={Colors.textMuted} />
+        </TouchableOpacity>
       </View>
 
       {pro.activity_types.length > 0 && (
@@ -226,7 +249,7 @@ function ProDetailCard({ pro, onClose }: { pro: ProfessionalNearby; onClose: () 
 // ─────────────────────────────────────────────
 function ProListCard({ pro }: { pro: ProfessionalNearby }) {
   return (
-    <TouchableOpacity style={listCard.container} activeOpacity={0.7}>
+    <TouchableOpacity style={listCard.container} activeOpacity={0.7} onPress={() => router.push(`/(owner)/explorer/${pro.id}`)}>
       <View style={listCard.avatar}>
         {pro.avatar_url ? (
           <Image source={{ uri: pro.avatar_url }} style={listCard.avatarImg} />

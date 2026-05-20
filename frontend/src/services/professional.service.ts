@@ -1,4 +1,5 @@
 import { api } from '../lib/axios'
+import { Profile, Certification, ProAboutQA } from '../types'
 
 export interface ProfessionalNearby {
   id: string
@@ -14,6 +15,11 @@ export interface ProfessionalNearby {
   distance_km: number
 }
 
+export type ProfessionalFull = Profile & {
+  certifications: Certification[]
+  about_qa: ProAboutQA[]
+}
+
 export const professionalService = {
   async getNearby(params: {
     lat: number
@@ -26,5 +32,10 @@ export const professionalService = {
       { params }
     )
     return data.professionals
+  },
+
+  async getById(id: string): Promise<ProfessionalFull> {
+    const { data } = await api.get<{ professional: ProfessionalFull }>(`/professionals/${id}`)
+    return data.professional
   },
 }
