@@ -36,7 +36,7 @@ export const petService = {
     } else {
       formData.append('photo', { uri, type: 'image/jpeg', name: 'photo.jpg' } as any)
     }
-    const { data } = await api.post<{ pet: Pet }>(`/pets/${id}/photo`, formData)
+    const { data } = await api.post<{ pet: Pet }>(`/pets/${id}/photo`, formData, { timeout: 60000 })
     return data.pet
   },
 
@@ -49,7 +49,7 @@ export const petService = {
     } else {
       formData.append('photo', { uri, type: 'image/jpeg', name: 'photo.jpg' } as any)
     }
-    const { data } = await api.post<{ pet: Pet }>(`/pets/${id}/gallery`, formData)
+    const { data } = await api.post<{ pet: Pet }>(`/pets/${id}/gallery`, formData, { timeout: 60000 })
     return data.pet
   },
 
