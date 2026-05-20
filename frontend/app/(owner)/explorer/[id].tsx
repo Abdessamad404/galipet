@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   Image, ActivityIndicator, Linking,
 } from 'react-native'
-import { router, useLocalSearchParams } from 'expo-router'
+import { router, useLocalSearchParams, useRouter } from 'expo-router'
 import {
   ChevronLeft, MapPin, Phone, Mail, Clock,
   Award, MessageCircle, Star, Calendar,
@@ -120,7 +120,11 @@ export default function ProProfileScreen() {
           )}
 
           {/* CTA principal */}
-          <TouchableOpacity style={styles.bookBtn} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={styles.bookBtn}
+            activeOpacity={0.85}
+            onPress={() => router.push({ pathname: '/(owner)/explorer/booking', params: { proId: pro.id, proName: pro.company_name || `${pro.first_name} ${pro.last_name}` } })}
+          >
             <Calendar size={18} color={Colors.textInverse} />
             <Text style={styles.bookBtnText}>Réserver une prestation</Text>
           </TouchableOpacity>
@@ -225,7 +229,11 @@ export default function ProProfileScreen() {
         )}
 
         {/* Bouton réserver en bas aussi */}
-        <TouchableOpacity style={[styles.bookBtn, { marginHorizontal: Spacing['2xl'], marginBottom: Spacing['2xl'] }]} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={[styles.bookBtn, { marginHorizontal: Spacing['2xl'], marginBottom: Spacing['2xl'] }]}
+          activeOpacity={0.85}
+          onPress={() => router.push({ pathname: '/(owner)/explorer/booking', params: { proId: pro.id, proName: pro.company_name || `${pro.first_name} ${pro.last_name}` } })}
+        >
           <Calendar size={18} color={Colors.textInverse} />
           <Text style={styles.bookBtnText}>Réserver une prestation</Text>
         </TouchableOpacity>

@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth.routes";
 import profileRoutes from "./routes/profile.routes";
 import petRoutes from "./routes/pet.routes";
 import professionalRoutes from "./routes/professional.routes";
+import bookingRoutes from "./routes/booking.routes";
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/profiles", profileRoutes);
 app.use("/api/pets", petRoutes);
 app.use("/api/professionals", professionalRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 // --- Health check ---
 app.get("/health", (_req, res) => {

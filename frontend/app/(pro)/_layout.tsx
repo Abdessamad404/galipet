@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router'
-import { LayoutDashboard, CalendarDays, User, Menu } from 'lucide-react-native'
+import { LayoutDashboard, CalendarDays, User, Menu, BookOpen } from 'lucide-react-native'
 import { Colors, Typography } from '@/constants/theme'
 
 // Tab navigator pour le rôle PROFESSIONAL
@@ -28,6 +28,13 @@ export default function ProLayout() {
         options={{
           title: 'Dashboard',
           tabBarIcon: ({ color, size }) => <LayoutDashboard size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="reservations/index"
+        options={{
+          title: 'Réservations',
+          tabBarIcon: ({ color, size }) => <BookOpen size={size} color={color} />,
         }}
       />
       <Tabs.Screen

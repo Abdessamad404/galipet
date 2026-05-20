@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router'
-import { Compass, PawPrint, User, Menu } from 'lucide-react-native'
+import { Compass, PawPrint, User, Menu, BookOpen } from 'lucide-react-native'
 import { Colors, Typography } from '@/constants/theme'
 
 // Tab navigator pour le rôle OWNER
@@ -37,6 +37,13 @@ export default function OwnerLayout() {
         }}
       />
       <Tabs.Screen
+        name="mes-reservations/index"
+        options={{
+          title: 'Réservations',
+          tabBarIcon: ({ color, size }) => <BookOpen size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="profil/index"
         options={{
           title: 'Mon Profil',
@@ -51,9 +58,10 @@ export default function OwnerLayout() {
         }}
       />
       {/* Écrans hors tab bar — accessibles via navigation mais sans onglet */}
-      <Tabs.Screen name="mes-animaux/nouveau"  options={{ href: null, headerShown: false }} />
-      <Tabs.Screen name="mes-animaux/[id]"     options={{ href: null, headerShown: false }} />
-      <Tabs.Screen name="explorer/[id]"        options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="mes-animaux/nouveau"    options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="mes-animaux/[id]"      options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="explorer/[id]"         options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="explorer/booking"      options={{ href: null, headerShown: false }} />
     </Tabs>
   )
 }
