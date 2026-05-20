@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router'
-import { Compass, PawPrint, User, Menu, BookOpen } from 'lucide-react-native'
+import { Compass, PawPrint, User, Menu, BookOpen, MessageCircle } from 'lucide-react-native'
 import { Colors, Typography } from '@/constants/theme'
 
 // Tab navigator pour le rôle OWNER
@@ -44,6 +44,13 @@ export default function OwnerLayout() {
         }}
       />
       <Tabs.Screen
+        name="messages/index"
+        options={{
+          title: 'Messages',
+          tabBarIcon: ({ color, size }) => <MessageCircle size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="profil/index"
         options={{
           title: 'Mon Profil',
@@ -62,6 +69,7 @@ export default function OwnerLayout() {
       <Tabs.Screen name="mes-animaux/[id]"      options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="explorer/[id]"         options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="explorer/booking"      options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="messages/[id]"         options={{ href: null, headerShown: false }} />
     </Tabs>
   )
 }

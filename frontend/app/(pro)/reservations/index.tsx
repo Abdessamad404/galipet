@@ -215,7 +215,7 @@ function ProBookingCard({ booking, onAccept, onReject, onComplete }: {
       )}
       {booking.status === 'accepted' && (
         <TouchableOpacity style={styles.completeBtn} onPress={() => onComplete(booking.id)} activeOpacity={0.8}>
-          <CheckCircle size={14} color={Colors.success} />
+          <CheckCircle size={14} color={Colors.info} />
           <Text style={styles.completeBtnText}>Marquer terminée</Text>
         </TouchableOpacity>
       )}

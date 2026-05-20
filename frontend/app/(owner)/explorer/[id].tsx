@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react'
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  Image, ActivityIndicator, Linking,
+  Image, ActivityIndicator, Linking, Platform,
 } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
   ChevronLeft, MapPin, Phone, Mail, Clock,
-  Award, MessageCircle, Star, Calendar,
+  Award, MessageCircle, Star, Calendar, MessageSquare,
 } from 'lucide-react-native'
 import { professionalService, ProfessionalFull } from '@/services/professional.service'
 import { reviewService, Review, ProRating } from '@/services/review.service'
+import { messageService } from '@/services/message.service'
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme'
 
 const ACTIVITY_LABELS: Record<string, string> = {
@@ -31,11 +32,12 @@ const DAY_LABELS: Record<string, string> = {
 // ─────────────────────────────────────────────
 export default function ProProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
-  const [pro, setPro]       = useState<ProfessionalFull | null>(null)
-  const [rating, setRating] = useState<ProRating | null>(null)
+  const [pro, setPro]         = useState<ProfessionalFull | null>(null)
+  const [rating, setRating]   = useState<ProRating | null>(null)
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError]   = useState<string | null>(null)
+  const [error, setError]     = useState<string | null>(null)
+  const [contacting, setContacting] = useState(false)
 
   useEffect(() => {
     load()
@@ -80,6 +82,15 @@ export default function ProProfileScreen() {
   }
 
   const initials = `${pro.first_name[0]}${pro.last_name[0]}`
+
+  async function handleContact() {
+    setContacting(true)
+    try {
+      const conv = await messageService.getOrCreate(pro.id)
+      router.push(`/(owner)/messages/${conv.id}` as any)
+    } catch {}
+    finally { setContacting(false) }
+  }
 
   return (
     <View style={styles.container}>
@@ -137,15 +148,31 @@ export default function ProProfileScreen() {
             </View>
           )}
 
-          {/* CTA principal */}
-          <TouchableOpacity
-            style={styles.bookBtn}
-            activeOpacity={0.85}
-            onPress={() => router.push({ pathname: '/(owner)/explorer/booking', params: { proId: pro.id, proName: pro.company_name || `${pro.first_name} ${pro.last_name}` } })}
-          >
-            <Calendar size={18} color={Colors.textInverse} />
-            <Text style={styles.bookBtnText}>Réserver une prestation</Text>
-          </TouchableOpacity>
+          {/* CTAs */}
+          <View style={styles.ctaRow}>
+            <TouchableOpacity
+              style={[styles.bookBtn, { flex: 1 }]}
+              activeOpacity={0.85}
+              onPress={() => router.push({ pathname: '/(owner)/explorer/booking', params: { proId: pro.id, proName: pro.company_name || `${pro.first_name} ${pro.last_name}` } })}
+            >
+              <Calendar size={16} color={Colors.textInverse} />
+              <Text style={styles.bookBtnText}>Réserver</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.contactBtn, { flex: 1 }]}
+              activeOpacity={0.85}
+              onPress={handleContact}
+              disabled={contacting}
+            >
+              {contacting
+                ? <ActivityIndicator size="small" color={Colors.primary} />
+                : <>
+                    <MessageSquare size={16} color={Colors.primary} />
+                    <Text style={styles.contactBtnText}>Contacter</Text>
+                  </>
+              }
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Description */}
@@ -255,15 +282,31 @@ export default function ProProfileScreen() {
           </Section>
         )}
 
-        {/* Bouton réserver en bas aussi */}
-        <TouchableOpacity
-          style={[styles.bookBtn, { marginHorizontal: Spacing['2xl'], marginBottom: Spacing['2xl'] }]}
-          activeOpacity={0.85}
-          onPress={() => router.push({ pathname: '/(owner)/explorer/booking', params: { proId: pro.id, proName: pro.company_name || `${pro.first_name} ${pro.last_name}` } })}
-        >
-          <Calendar size={18} color={Colors.textInverse} />
-          <Text style={styles.bookBtnText}>Réserver une prestation</Text>
-        </TouchableOpacity>
+        {/* Boutons en bas aussi */}
+        <View style={[styles.ctaRow, { marginHorizontal: Spacing['2xl'], marginBottom: Spacing['2xl'] }]}>
+          <TouchableOpacity
+            style={[styles.bookBtn, { flex: 1 }]}
+            activeOpacity={0.85}
+            onPress={() => router.push({ pathname: '/(owner)/explorer/booking', params: { proId: pro.id, proName: pro.company_name || `${pro.first_name} ${pro.last_name}` } })}
+          >
+            <Calendar size={16} color={Colors.textInverse} />
+            <Text style={styles.bookBtnText}>Réserver</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.contactBtn, { flex: 1 }]}
+            activeOpacity={0.85}
+            onPress={handleContact}
+            disabled={contacting}
+          >
+            {contacting
+              ? <ActivityIndicator size="small" color={Colors.primary} />
+              : <>
+                  <MessageSquare size={16} color={Colors.primary} />
+                  <Text style={styles.contactBtnText}>Contacter</Text>
+                </>
+            }
+          </TouchableOpacity>
+        </View>
 
       </ScrollView>
     </View>
@@ -395,13 +438,20 @@ const styles = StyleSheet.create({
   },
   tagText: { fontSize: Typography.sm, color: Colors.primaryDark, fontWeight: Typography.semibold },
 
+  ctaRow: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.md, width: '100%' },
   bookBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs,
     backgroundColor: Colors.primary, borderRadius: Radius.md,
-    paddingVertical: Spacing.md, paddingHorizontal: Spacing.xl,
-    marginTop: Spacing.md, ...Shadow.sm,
+    paddingVertical: Spacing.md, paddingHorizontal: Spacing.md,
+    ...Shadow.sm,
   },
-  bookBtnText: { color: Colors.textInverse, fontSize: Typography.base, fontWeight: Typography.semibold },
+  bookBtnText: { color: Colors.textInverse, fontSize: Typography.sm, fontWeight: Typography.semibold },
+  contactBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs,
+    borderWidth: 1.5, borderColor: Colors.primary, borderRadius: Radius.md,
+    paddingVertical: Spacing.md, paddingHorizontal: Spacing.md,
+  },
+  contactBtnText: { color: Colors.primary, fontSize: Typography.sm, fontWeight: Typography.semibold },
 
   // Description
   description: { fontSize: Typography.base, color: Colors.textSecondary, lineHeight: 22 },

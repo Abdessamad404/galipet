@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router'
-import { LayoutDashboard, CalendarDays, User, Menu, BookOpen } from 'lucide-react-native'
+import { LayoutDashboard, CalendarDays, User, Menu, BookOpen, MessageCircle } from 'lucide-react-native'
 import { Colors, Typography } from '@/constants/theme'
 
 // Tab navigator pour le rôle PROFESSIONAL
@@ -45,6 +45,13 @@ export default function ProLayout() {
         }}
       />
       <Tabs.Screen
+        name="messages/index"
+        options={{
+          title: 'Messages',
+          tabBarIcon: ({ color, size }) => <MessageCircle size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="profil/index"
         options={{
           title: 'Mon Profil',
@@ -58,6 +65,7 @@ export default function ProLayout() {
           tabBarIcon: ({ color, size }) => <Menu size={size} color={color} />,
         }}
       />
+      <Tabs.Screen name="messages/[id]" options={{ href: null, headerShown: false }} />
     </Tabs>
   )
 }
