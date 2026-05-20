@@ -432,7 +432,14 @@ const styles = StyleSheet.create({
     width: 96, height: 96, borderRadius: 48,
     backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center',
   },
-  avatarInitials: { color: Colors.textInverse, fontSize: Typography['2xl'], fontWeight: Typography.bold },
+  avatarInitials: {
+    color: Colors.textInverse,
+    fontSize: Typography['2xl'],
+    fontWeight: Typography.bold,
+    lineHeight: Typography['2xl'],
+    textAlign: 'center',
+    textAlignVertical: 'center',
+  },
   cameraOverlay: {
     position: 'absolute', bottom: 0, right: 0, width: 30, height: 30,
     borderRadius: 15, backgroundColor: Colors.textPrimary,

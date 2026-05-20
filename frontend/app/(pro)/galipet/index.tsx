@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Alert,
   Platform,
+  Image,
 } from 'react-native'
 import { router } from 'expo-router'
 import {
@@ -45,9 +46,13 @@ export default function GalipetMenuProScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.userHeader}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {profile?.first_name?.[0]}{profile?.last_name?.[0]}
-          </Text>
+          {profile?.avatar_url ? (
+            <Image source={{ uri: profile.avatar_url }} style={styles.avatarImage} />
+          ) : (
+            <Text style={styles.avatarText}>
+              {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+            </Text>
+          )}
         </View>
         <View>
           <Text style={styles.userName}>{profile?.first_name} {profile?.last_name}</Text>
@@ -160,8 +165,17 @@ const styles = StyleSheet.create({
   avatar: {
     width: 52, height: 52, borderRadius: 26,
     backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center',
+    overflow: 'hidden',
   },
-  avatarText: { color: Colors.textInverse, fontSize: Typography.lg, fontWeight: Typography.bold },
+  avatarImage: { width: 52, height: 52, borderRadius: 26 },
+  avatarText: {
+    color: Colors.textInverse,
+    fontSize: Typography.lg,
+    fontWeight: Typography.bold,
+    lineHeight: Typography.lg,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+  },
   userName: { fontSize: Typography.base, fontWeight: Typography.semibold, color: Colors.textPrimary },
   userRole: { fontSize: Typography.sm, color: Colors.textSecondary },
   heroCard: {

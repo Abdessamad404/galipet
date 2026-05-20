@@ -12,13 +12,20 @@ export const api = axios.create({
   },
 })
 
-// Interceptor request : injecte le token JWT dans chaque requête automatiquement.
-// Comme ça, dans les services on appelle juste api.get('/...') sans gérer le token manuellement.
+// Interceptor request : injecte le token JWT + gère le Content-Type automatiquement.
 api.interceptors.request.use(async (config) => {
   const token = await storage.get('auth_token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+
+  // Si le body est FormData, on supprime le Content-Type forcé à application/json.
+  // Axios (et le navigateur/React Native) le définit automatiquement avec le bon boundary multipart.
+  // Le laisser à application/json ferait échouer le parsing multer côté backend.
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type']
+  }
+
   return config
 })
 
