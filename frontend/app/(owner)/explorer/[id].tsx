@@ -3,12 +3,13 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   Image, ActivityIndicator, Linking,
 } from 'react-native'
-import { router, useLocalSearchParams, useRouter } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import {
   ChevronLeft, MapPin, Phone, Mail, Clock,
   Award, MessageCircle, Star, Calendar,
 } from 'lucide-react-native'
 import { professionalService, ProfessionalFull } from '@/services/professional.service'
+import { reviewService, Review, ProRating } from '@/services/review.service'
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme'
 
 const ACTIVITY_LABELS: Record<string, string> = {
@@ -31,6 +32,8 @@ const DAY_LABELS: Record<string, string> = {
 export default function ProProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const [pro, setPro]       = useState<ProfessionalFull | null>(null)
+  const [rating, setRating] = useState<ProRating | null>(null)
+  const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]   = useState<string | null>(null)
 
@@ -42,8 +45,14 @@ export default function ProProfileScreen() {
     if (!id) return
     setError(null)
     try {
-      const data = await professionalService.getById(id)
+      const [data, ratingData, reviewsData] = await Promise.all([
+        professionalService.getById(id),
+        reviewService.getProRating(id),
+        reviewService.getProReviews(id),
+      ])
       setPro(data)
+      setRating(ratingData)
+      setReviews(reviewsData)
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Professionnel introuvable.')
     } finally {
@@ -105,6 +114,15 @@ export default function ProProfileScreen() {
             <View style={styles.heroLocation}>
               <MapPin size={13} color={Colors.textMuted} />
               <Text style={styles.heroLocationText}>{pro.city}</Text>
+            </View>
+          )}
+
+          {/* Note moyenne */}
+          {rating && rating.review_count > 0 && (
+            <View style={styles.ratingRow}>
+              <Star size={16} color="#F59E0B" fill="#F59E0B" />
+              <Text style={styles.ratingText}>{rating.average_rating}</Text>
+              <Text style={styles.ratingCount}>({rating.review_count} avis)</Text>
             </View>
           )}
 
@@ -202,6 +220,15 @@ export default function ProProfileScreen() {
           </Section>
         )}
 
+        {/* Avis */}
+        {reviews.length > 0 && (
+          <Section title={`Avis (${reviews.length})`}>
+            {reviews.map((review) => (
+              <ReviewCard key={review.id} review={review} />
+            ))}
+          </Section>
+        )}
+
         {/* Contact */}
         {(pro.company_email || pro.phone) && (
           <Section title="Contact">
@@ -242,6 +269,61 @@ export default function ProProfileScreen() {
     </View>
   )
 }
+
+// ─────────────────────────────────────────────
+// ReviewCard
+// ─────────────────────────────────────────────
+function ReviewCard({ review }: { review: Review }) {
+  const owner    = review.owner
+  const initials = owner ? `${owner.first_name[0]}${owner.last_name[0]}` : '?'
+  const date     = new Date(review.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  return (
+    <View style={reviewStyles.card}>
+      {/* Author */}
+      <View style={reviewStyles.header}>
+        <View style={reviewStyles.avatar}>
+          {owner?.avatar_url ? (
+            <Image source={{ uri: owner.avatar_url }} style={reviewStyles.avatarImg} />
+          ) : (
+            <Text style={reviewStyles.initials}>{initials}</Text>
+          )}
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={reviewStyles.name}>
+            {owner ? `${owner.first_name} ${owner.last_name}` : 'Anonyme'}
+          </Text>
+          <Text style={reviewStyles.date}>{date}</Text>
+        </View>
+        {/* Stars */}
+        <View style={reviewStyles.stars}>
+          {[1,2,3,4,5].map((s) => (
+            <Star key={s} size={13} color="#F59E0B" fill={s <= review.rating ? '#F59E0B' : 'transparent'} />
+          ))}
+        </View>
+      </View>
+      {review.comment ? (
+        <Text style={reviewStyles.comment}>{review.comment}</Text>
+      ) : null}
+    </View>
+  )
+}
+
+const reviewStyles = StyleSheet.create({
+  card: { gap: Spacing.xs },
+  header: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  avatar: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: Colors.primaryLight,
+    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+  },
+  avatarImg: { width: 36, height: 36 },
+  initials:  { fontSize: Typography.sm, fontWeight: Typography.bold, color: Colors.primaryDark },
+  name:      { fontSize: Typography.sm, fontWeight: Typography.semibold, color: Colors.textPrimary },
+  date:      { fontSize: Typography.xs, color: Colors.textMuted },
+  stars:     { flexDirection: 'row', gap: 2 },
+  comment:   { fontSize: Typography.sm, color: Colors.textSecondary, lineHeight: 20, paddingLeft: 44 },
+})
 
 // ─────────────────────────────────────────────
 // Composant Section réutilisable
@@ -301,6 +383,10 @@ const styles = StyleSheet.create({
   heroCompany:    { fontSize: Typography.sm, color: Colors.textMuted },
   heroLocation:   { flexDirection: 'row', alignItems: 'center', gap: 4 },
   heroLocationText: { fontSize: Typography.sm, color: Colors.textMuted },
+
+  ratingRow:  { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
+  ratingText: { fontSize: Typography.base, fontWeight: Typography.bold, color: Colors.textPrimary },
+  ratingCount: { fontSize: Typography.sm, color: Colors.textMuted },
 
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: Spacing.xs, marginTop: Spacing.xs },
   tag: {
