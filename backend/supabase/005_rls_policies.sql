@@ -4,7 +4,7 @@
 
 -- Profiles : lecture des profils pro publics (pour l'Explorer)
 CREATE POLICY "Lecture profils pro publics" ON profiles
-  FOR SELECT USING (role IN ('professional', 'both'));
+  FOR SELECT USING (role = 'professional');
 
 -- Pets : lecture de ses propres animaux uniquement
 ALTER TABLE pets ENABLE ROW LEVEL SECURITY;

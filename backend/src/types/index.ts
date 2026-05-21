@@ -1,6 +1,6 @@
 // Types partagés dans tout le backend
 
-export type UserRole = 'owner' | 'professional' | 'both'
+export type UserRole = 'owner' | 'professional'
 
 // Horaires de travail — chaque jour peut être fermé ou avoir une plage horaire
 export interface DaySchedule {

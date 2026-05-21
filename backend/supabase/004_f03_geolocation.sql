@@ -49,7 +49,7 @@ AS $$
       )) AS distance_km
     FROM profiles p
     WHERE
-      p.role IN ('professional', 'both')
+      p.role = 'professional'
       AND p.lat IS NOT NULL
       AND p.lng IS NOT NULL
       -- Filtre boîte englobante d'abord (évite le full-scan)

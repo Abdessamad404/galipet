@@ -28,7 +28,7 @@ export async function getProPublicProfile(req: Request, res: Response) {
   try {
     const profile = await getPublicProfile(req.params.id)
     // On vérifie que c'est bien un pro avant de retourner le profil
-    if (!['professional', 'both'].includes(profile.role)) {
+    if (profile.role !== 'professional') {
       return res.status(404).json({ error: 'Professionnel introuvable' })
     }
     res.json({ professional: profile })

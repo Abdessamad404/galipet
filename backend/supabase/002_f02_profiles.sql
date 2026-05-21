@@ -22,7 +22,7 @@ CREATE INDEX IF NOT EXISTS idx_profiles_location ON profiles(lat, lng)
 
 -- Index rôle pro pour filtrer les pros dans l'explorer
 CREATE INDEX IF NOT EXISTS idx_profiles_pro ON profiles(role)
-  WHERE role IN ('professional', 'both');
+  WHERE role = 'professional';
 
 -- -----------------------------------------------------------------------
 -- Certifications / Diplômes des professionnels
