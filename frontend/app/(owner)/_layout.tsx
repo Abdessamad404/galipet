@@ -9,8 +9,11 @@ import { AppHeader } from '@/components/AppHeader'
 // Messages + Réservations accessibles via l'AppHeader (icônes), pas en tab
 
 export default function OwnerLayout() {
-  const { profile } = useAuthStore()
+  const { profile, isInitialized } = useAuthStore()
 
+  // Attendre que initialize() ait fini avant de décider de rediriger.
+  // Sans ça, le refresh déconnecte car profile=null pendant le chargement async.
+  if (!isInitialized) return null
   if (!profile) return <Redirect href="/auth/login" />
   if (profile.role !== 'owner') return <Redirect href="/(pro)/dashboard" />
 

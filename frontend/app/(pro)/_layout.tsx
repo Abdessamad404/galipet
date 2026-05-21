@@ -10,8 +10,11 @@ import { AppHeader } from '@/components/AppHeader'
 // Réservations accessible via navigation directe depuis le dashboard
 
 export default function ProLayout() {
-  const { profile } = useAuthStore()
+  const { profile, isInitialized } = useAuthStore()
 
+  // Attendre que initialize() ait fini avant de décider de rediriger.
+  // Sans ça, le refresh déconnecte car profile=null pendant le chargement async.
+  if (!isInitialized) return null
   if (!profile) return <Redirect href="/auth/login" />
   if (profile.role !== 'professional') return <Redirect href="/(owner)/explorer" />
 
