@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
 
   // Grid card
   gridCard: {
-    width: '47%',
+    width: '44%',
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     borderWidth: 1,
@@ -283,17 +283,17 @@ const styles = StyleSheet.create({
   },
   gridPhoto: {
     width: '100%',
-    aspectRatio: 1,
+    height: 130,
     backgroundColor: Colors.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  gridImage: { width: '100%', height: '100%' },
-  gridEmoji: { fontSize: 42 },
-  gridInfo: { padding: Spacing.sm, gap: 2 },
-  gridName: { fontSize: Typography.sm, fontWeight: Typography.semibold, color: Colors.textPrimary },
-  gridSpecies: { fontSize: Typography.xs, color: Colors.textSecondary },
-  gridVerified: { fontSize: Typography.xs, color: Colors.success, marginTop: 2 },
+  gridImage: { width: '100%', height: 130 },
+  gridEmoji: { fontSize: 32 },
+  gridInfo: { padding: Spacing.xs, gap: 1 },
+  gridName: { fontSize: Typography.xs, fontWeight: Typography.semibold, color: Colors.textPrimary },
+  gridSpecies: { fontSize: 10, color: Colors.textSecondary },
+  gridVerified: { fontSize: 10, color: Colors.success },
 
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.md, paddingHorizontal: Spacing['3xl'] },
   emptyTitle: { fontSize: Typography.lg, fontWeight: Typography.semibold, color: Colors.textPrimary, textAlign: 'center' },
