@@ -135,7 +135,7 @@ export default function MesReservationsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.navigate('/(owner)/explorer')} activeOpacity={0.7} style={styles.backBtn}>
           <ChevronLeft size={22} color={Colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Mes Réservations</Text>
@@ -165,8 +165,9 @@ export default function MesReservationsScreen() {
 
       {/* ── Modal Avis ── */}
       <Modal visible={modal.visible} transparent animationType="slide" onRequestClose={() => setModal(EMPTY_MODAL)}>
-        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <View style={styles.modalBox}>
+        <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setModal(EMPTY_MODAL)} />
+        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined} pointerEvents="box-none">
+          <View style={styles.modalBox} onStartShouldSetResponder={() => true}>
             <Text style={styles.modalTitle}>
               {modal.existing ? 'Modifier votre avis' : 'Laisser un avis'}
             </Text>
@@ -334,8 +335,12 @@ const styles = StyleSheet.create({
   reviewBtnText: { fontSize: Typography.sm, color: Colors.primary, fontWeight: Typography.medium },
 
   // Modal
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
   modalOverlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
+    flex: 1,
     justifyContent: 'flex-end',
   },
   modalBox: {

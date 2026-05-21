@@ -155,15 +155,15 @@ export default function CalendrierScreen() {
 
       {/* ── Detail modal ── */}
       <Modal visible={!!selected} transparent animationType="slide" onRequestClose={() => setSelected(null)}>
-        <View style={m.overlay}>
-          <View style={m.sheet}>
+        <TouchableOpacity style={m.overlay} activeOpacity={1} onPress={() => setSelected(null)}>
+          <View style={m.sheet} onStartShouldSetResponder={() => true}>
             <View style={m.handle} />
             <TouchableOpacity style={m.closeBtn} onPress={() => setSelected(null)} activeOpacity={0.7}>
               <X size={18} color={Colors.textSecondary} />
             </TouchableOpacity>
             {selected && <DetailContent booking={selected} />}
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
     </View>
   )

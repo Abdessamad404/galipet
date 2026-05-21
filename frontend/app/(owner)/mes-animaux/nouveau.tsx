@@ -63,7 +63,7 @@ export default function NouvelAnimalScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.navigate('/(owner)/mes-animaux')} activeOpacity={0.7}>
           <ChevronLeft size={22} color={Colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Nouvel animal</Text>

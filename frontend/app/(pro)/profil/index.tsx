@@ -509,8 +509,8 @@ export default function ProProfileScreen() {
         animationType="fade"
         onRequestClose={() => setCertModalVisible(false)}
       >
-        <View style={modal.overlay}>
-          <View style={modal.box}>
+        <TouchableOpacity style={modal.overlay} activeOpacity={1} onPress={() => setCertModalVisible(false)}>
+          <View style={modal.box} onStartShouldSetResponder={() => true}>
             <Text style={modal.title}>Nouvelle certification</Text>
 
             <View style={modal.field}>
@@ -557,7 +557,7 @@ export default function ProProfileScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
 
       {/* Modal ajout Q&A */}
@@ -567,8 +567,8 @@ export default function ProProfileScreen() {
         animationType="fade"
         onRequestClose={() => setQaModalVisible(false)}
       >
-        <View style={modal.overlay}>
-          <View style={modal.box}>
+        <TouchableOpacity style={modal.overlay} activeOpacity={1} onPress={() => setQaModalVisible(false)}>
+          <View style={modal.box} onStartShouldSetResponder={() => true}>
             <Text style={modal.title}>Nouvelle question</Text>
 
             <View style={modal.field}>
@@ -616,7 +616,7 @@ export default function ProProfileScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
 
       {/* Bouton sauvegarder */}

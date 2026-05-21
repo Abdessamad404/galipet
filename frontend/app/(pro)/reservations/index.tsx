@@ -96,7 +96,7 @@ export default function ProReservationsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.navigate('/(pro)/dashboard')} activeOpacity={0.7} style={styles.backBtn}>
           <ChevronLeft size={22} color={Colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Réservations</Text>
