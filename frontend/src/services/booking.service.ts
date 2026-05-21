@@ -39,6 +39,11 @@ export const bookingService = {
     return data.booking
   },
 
+  async getById(id: string): Promise<Booking> {
+    const { data } = await api.get<{ booking: Booking }>(`/bookings/${id}`)
+    return data.booking
+  },
+
   async getOwnerBookings(): Promise<Booking[]> {
     const { data } = await api.get<{ bookings: Booking[] }>('/bookings/owner')
     return data.bookings

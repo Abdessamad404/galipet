@@ -9,16 +9,23 @@ import { bookingService, Booking, BookingStatus } from '@/services/booking.servi
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme'
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string; color: string; bg: string }> = {
-  pending:   { label: 'En attente',  color: Colors.warning,   bg: Colors.warningLight },
-  accepted:  { label: 'Acceptée',    color: Colors.success,   bg: Colors.successLight },
-  rejected:  { label: 'Refusée',     color: Colors.error,     bg: Colors.errorLight   },
-  cancelled: { label: 'Annulée',     color: Colors.textMuted, bg: Colors.surfaceAlt   },
-  completed: { label: 'Terminée',    color: Colors.info,      bg: '#EFF6FF'           },
+  pending:          { label: 'En attente',   color: Colors.warning,   bg: Colors.warningLight },
+  accepted:         { label: 'Acceptée',     color: Colors.success,   bg: Colors.successLight },
+  in_progress:      { label: 'En cours',     color: Colors.info,      bg: '#DBEAFE'           },
+  completed:        { label: 'Terminée',     color: Colors.success,   bg: Colors.successLight },
+  rejected:         { label: 'Refusée',      color: Colors.error,     bg: Colors.errorLight   },
+  cancelled:        { label: 'Annulée',      color: Colors.textMuted, bg: Colors.surfaceAlt   },
+  no_show:          { label: 'Absent',       color: Colors.warning,   bg: Colors.warningLight },
+  rescheduled:      { label: 'Reprogrammée', color: Colors.warning,   bg: Colors.warningLight },
+  blocked:          { label: 'Bloqué',       color: Colors.textMuted, bg: Colors.surfaceAlt   },
+  awaiting_payment: { label: 'Paiement',     color: Colors.warning,   bg: Colors.warningLight },
 }
 
 const SERVICE_LABELS: Record<string, string> = {
-  grooming: 'Toilettage', sitting: 'Pet-sitting', training: 'Éducation',
-  vet: 'Vétérinaire', walking: 'Promenade', boarding: 'Pension',
+  sante:         'Santé & Soin',
+  toilettage:    'Toilettage',
+  'pet-sitting': 'Pet-sitting',
+  education:     'Éducation',
 }
 
 export default function ProReservationsScreen() {
@@ -90,8 +97,8 @@ export default function ProReservationsScreen() {
   }
 
   const pending   = bookings.filter((b) => b.status === 'pending')
-  const upcoming  = bookings.filter((b) => b.status === 'accepted')
-  const past      = bookings.filter((b) => ['rejected', 'cancelled', 'completed'].includes(b.status))
+  const upcoming  = bookings.filter((b) => ['accepted', 'in_progress'].includes(b.status))
+  const past      = bookings.filter((b) => ['completed', 'rejected', 'cancelled', 'no_show', 'rescheduled'].includes(b.status))
 
   return (
     <View style={styles.container}>
@@ -216,7 +223,7 @@ function ProBookingCard({ booking, onAccept, onReject, onComplete }: {
           </TouchableOpacity>
         </View>
       )}
-      {booking.status === 'accepted' && (
+      {(booking.status === 'accepted' || booking.status === 'in_progress') && (
         <TouchableOpacity style={styles.completeBtn} onPress={() => onComplete(booking.id)} activeOpacity={0.8}>
           <CheckCircle size={14} color={Colors.info} />
           <Text style={styles.completeBtnText}>Marquer terminée</Text>

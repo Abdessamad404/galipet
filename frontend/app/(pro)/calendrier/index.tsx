@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
   ActivityIndicator, Modal, Image, TextInput, Platform, Alert,
 } from 'react-native'
-import { useFocusEffect } from 'expo-router'
+import { useFocusEffect, router } from 'expo-router'
 import { ChevronLeft, ChevronRight, X, Clock, Tag, Lock } from 'lucide-react-native'
 import { bookingService, Booking } from '@/services/booking.service'
 import { Colors, Typography, Spacing, Radius } from '@/constants/theme'
@@ -522,6 +522,16 @@ function DetailContent({ booking: bk, actionLoading, onAccept, onReject, onStart
       ) : (
         <ActivityIndicator color={Colors.primary} style={{ marginTop: Spacing.md }} />
       )}
+
+      {/* Voir la fiche complète — toujours visible */}
+      <TouchableOpacity
+        style={m.detailLink}
+        onPress={() => router.push(`/(pro)/reservations/${bk.id}`)}
+        activeOpacity={0.7}
+      >
+        <ChevronRight size={15} color={Colors.primary} />
+        <Text style={m.detailLinkText}>Voir la fiche complète</Text>
+      </TouchableOpacity>
     </ScrollView>
   )
 }
@@ -621,6 +631,9 @@ const m = StyleSheet.create({
   actions:       { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   actionBtn:     { flex: 1, minWidth: 100, paddingVertical: Spacing.sm, borderRadius: Radius.md, alignItems: 'center' },
   actionBtnText: { fontSize: Typography.sm, fontWeight: Typography.semibold, color: '#fff' },
+
+  detailLink:     { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.sm, alignSelf: 'center' },
+  detailLinkText: { fontSize: Typography.sm, color: Colors.primary, fontWeight: Typography.medium },
 })
 
 const b = StyleSheet.create({

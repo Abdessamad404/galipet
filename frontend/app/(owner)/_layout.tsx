@@ -65,6 +65,7 @@ export default function OwnerLayout() {
 
       {/* ── Écrans hors tab bar ── */}
       <Tabs.Screen name="mes-reservations/index" options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="mes-reservations/[id]"  options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="messages/index"         options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="messages/[id]"          options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="mes-animaux/nouveau"    options={{ href: null, headerShown: false }} />

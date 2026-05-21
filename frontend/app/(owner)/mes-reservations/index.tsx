@@ -241,7 +241,11 @@ function BookingCard({
   const date   = new Date(booking.scheduled_at)
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => router.push(`/(owner)/mes-reservations/${booking.id}`)}
+      activeOpacity={0.85}
+    >
       {/* En-tête */}
       <View style={styles.cardHeader}>
         <View style={{ flex: 1 }}>
@@ -288,13 +292,13 @@ function BookingCard({
         )}
 
         {booking.status === 'completed' && (
-          <TouchableOpacity style={styles.reviewBtn} onPress={() => onReview(booking)} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.reviewBtn} onPress={(e) => { e.stopPropagation?.(); onReview(booking) }} activeOpacity={0.7}>
             <Star size={14} color={Colors.primary} />
             <Text style={styles.reviewBtnText}>Laisser un avis</Text>
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   )
 }
 

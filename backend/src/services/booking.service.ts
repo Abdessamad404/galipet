@@ -60,7 +60,7 @@ export const bookingService = {
       .from('bookings')
       .select(SELECT_WITH_RELATIONS)
       .eq('pro_id', proId)
-      .order('scheduled_at', { ascending: true })
+      .order('scheduled_at', { ascending: false })
     if (error) throw new Error(error.message)
     return (data || []) as Booking[]
   },

@@ -66,6 +66,7 @@ export default function ProLayout() {
 
       {/* ── Écrans hors tab bar ── */}
       <Tabs.Screen name="reservations/index" options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="reservations/[id]"  options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="messages/index"     options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="messages/[id]"      options={{ href: null, headerShown: false }} />
     </Tabs>
