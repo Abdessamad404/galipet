@@ -11,10 +11,15 @@ import { reviewService, Review } from '@/services/review.service'
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme'
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string; color: string; bg: string }> = {
-  pending:   { label: 'En attente',  color: Colors.warning,  bg: Colors.warningLight  },
-  accepted:  { label: 'Acceptée',    color: Colors.success,  bg: Colors.successLight  },
-  rejected:  { label: 'Refusée',     color: Colors.error,    bg: Colors.errorLight    },
-  cancelled: { label: 'Annulée',     color: Colors.textMuted, bg: Colors.surfaceAlt   },
+  pending:          { label: 'En attente',     color: Colors.warning,   bg: Colors.warningLight  },
+  accepted:         { label: 'Acceptée',       color: Colors.success,   bg: Colors.successLight  },
+  rejected:         { label: 'Refusée',        color: Colors.error,     bg: Colors.errorLight    },
+  cancelled:        { label: 'Annulée',        color: Colors.textMuted, bg: Colors.surfaceAlt    },
+  in_progress:      { label: 'En cours',       color: '#7C3AED',        bg: '#EDE9FE'            },
+  no_show:          { label: 'Absent',         color: '#B45309',        bg: '#FEF3C7'            },
+  rescheduled:      { label: 'Reprogrammée',   color: '#0891B2',        bg: '#CFFAFE'            },
+  blocked:          { label: 'Bloqué',         color: '#374151',        bg: '#E5E7EB'            },
+  awaiting_payment: { label: 'Att. paiement',  color: '#9333EA',        bg: '#F3E8FF'            },
   completed: { label: 'Terminée',    color: Colors.info,     bg: '#EFF6FF'            },
 }
 

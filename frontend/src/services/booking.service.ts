@@ -1,6 +1,6 @@
 import { api } from '../lib/axios'
 
-export type BookingStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'completed'
+export type BookingStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'completed' | 'in_progress' | 'no_show' | 'rescheduled' | 'blocked' | 'awaiting_payment'
 
 export interface Booking {
   id:            string
@@ -67,5 +67,28 @@ export const bookingService = {
   async complete(id: string, proNote?: string): Promise<Booking> {
     const { data } = await api.patch<{ booking: Booking }>(`/bookings/${id}/complete`, { pro_note: proNote })
     return data.booking
+  },
+
+  async start(id: string): Promise<Booking> {
+    const { data } = await api.patch<{ booking: Booking }>(`/bookings/${id}/start`)
+    return data.booking
+  },
+
+  async noShow(id: string): Promise<Booking> {
+    const { data } = await api.patch<{ booking: Booking }>(`/bookings/${id}/no-show`)
+    return data.booking
+  },
+
+  async createBlock(scheduledAt: string, durationMin: number, note?: string): Promise<Booking> {
+    const { data } = await api.post<{ booking: Booking }>('/bookings/block', {
+      scheduled_at: scheduledAt,
+      duration_min: durationMin,
+      note,
+    })
+    return data.booking
+  },
+
+  async deleteBlock(id: string): Promise<void> {
+    await api.delete(`/bookings/${id}/block`)
   },
 }

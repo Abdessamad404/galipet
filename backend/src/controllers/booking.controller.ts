@@ -101,3 +101,47 @@ export async function completeBooking(req: Request, res: Response) {
     res.status(400).json({ error: err.message })
   }
 }
+
+// ── Pro démarre la prestation ──
+export async function startBooking(req: Request, res: Response) {
+  try {
+    const booking = await bookingService.startProgress(req.params.id, req.user!.sub)
+    res.json({ booking })
+  } catch (err: any) {
+    res.status(400).json({ error: err.message })
+  }
+}
+
+// ── Pro marque absent ──
+export async function noShowBooking(req: Request, res: Response) {
+  try {
+    const booking = await bookingService.noShow(req.params.id, req.user!.sub)
+    res.json({ booking })
+  } catch (err: any) {
+    res.status(400).json({ error: err.message })
+  }
+}
+
+// ── Pro crée un créneau bloqué ──
+export async function createBlock(req: Request, res: Response) {
+  const { scheduled_at, duration_min, note } = req.body
+  if (!scheduled_at || !duration_min) {
+    return res.status(400).json({ error: 'scheduled_at et duration_min sont requis' })
+  }
+  try {
+    const booking = await bookingService.createBlock(req.user!.sub, scheduled_at, duration_min, note)
+    res.status(201).json({ booking })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+// ── Pro supprime un créneau bloqué ──
+export async function deleteBlock(req: Request, res: Response) {
+  try {
+    await bookingService.deleteBlock(req.params.id, req.user!.sub)
+    res.json({ success: true })
+  } catch (err: any) {
+    res.status(400).json({ error: err.message })
+  }
+}

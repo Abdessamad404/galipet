@@ -11,7 +11,7 @@ export interface Booking {
   duration_min:  number | null
   message:       string | null
   price:         number | null
-  status:        'pending' | 'accepted' | 'rejected' | 'cancelled' | 'completed'
+  status:        'pending' | 'accepted' | 'rejected' | 'cancelled' | 'completed' | 'in_progress' | 'no_show' | 'rescheduled' | 'blocked' | 'awaiting_payment'
   reject_reason: string | null
   cancel_reason: string | null
   pro_note:      string | null
@@ -125,10 +125,68 @@ export const bookingService = {
       .update({ status: 'completed', pro_note: proNote || null })
       .eq('id', id)
       .eq('pro_id', proId)
-      .eq('status', 'accepted')
+      .in('status', ['accepted', 'in_progress'])
       .select(SELECT_WITH_RELATIONS)
       .single()
     if (error || !data) throw new Error('Impossible de terminer cette réservation')
     return data as Booking
+  },
+
+  // ── Pro démarre la prestation ──
+  async startProgress(id: string, proId: string): Promise<Booking> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .update({ status: 'in_progress' })
+      .eq('id', id)
+      .eq('pro_id', proId)
+      .eq('status', 'accepted')
+      .select(SELECT_WITH_RELATIONS)
+      .single()
+    if (error || !data) throw new Error('Impossible de démarrer cette prestation')
+    return data as Booking
+  },
+
+  // ── Pro marque absent ──
+  async noShow(id: string, proId: string): Promise<Booking> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .update({ status: 'no_show' })
+      .eq('id', id)
+      .eq('pro_id', proId)
+      .in('status', ['accepted', 'in_progress'])
+      .select(SELECT_WITH_RELATIONS)
+      .single()
+    if (error || !data) throw new Error('Impossible de marquer absent')
+    return data as Booking
+  },
+
+  // ── Pro crée un créneau bloqué (usage personnel) ──
+  async createBlock(proId: string, scheduledAt: string, durationMin: number, note?: string): Promise<Booking> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .insert({
+        owner_id:     proId,
+        pro_id:       proId,
+        service_type: 'blocked',
+        scheduled_at: scheduledAt,
+        duration_min: durationMin,
+        message:      note || null,
+        status:       'blocked',
+      })
+      .select(SELECT_WITH_RELATIONS)
+      .single()
+    if (error || !data) throw new Error('Impossible de créer le créneau bloqué')
+    return data as Booking
+  },
+
+  // ── Supprimer un créneau bloqué ──
+  async deleteBlock(id: string, proId: string): Promise<void> {
+    const { error } = await supabase
+      .from('bookings')
+      .delete()
+      .eq('id', id)
+      .eq('pro_id', proId)
+      .eq('status', 'blocked')
+    if (error) throw new Error('Impossible de supprimer ce créneau')
   },
 }
