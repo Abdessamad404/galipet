@@ -86,8 +86,10 @@ export default function ProProfileScreen() {
   async function handleContact() {
     setContacting(true)
     try {
-      const conv = await messageService.getOrCreate(pro.id)
-      router.push(`/(owner)/messages/${conv.id}` as any)
+      const conv   = await messageService.getOrCreate(pro.id)
+      const name   = pro.company_name || `${pro.first_name} ${pro.last_name}`
+      const avatar = pro.avatar_url ?? ''
+      router.push({ pathname: '/(owner)/messages/[id]' as any, params: { id: conv.id, otherName: name, otherAvatar: avatar } })
     } catch {}
     finally { setContacting(false) }
   }

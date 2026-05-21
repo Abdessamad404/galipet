@@ -13,7 +13,7 @@ export default function OwnerLayout() {
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textMuted,
         tabBarLabelStyle: {
-          fontSize: Typography.xs,
+          fontSize: 9,
           fontWeight: Typography.medium,
         },
         tabBarStyle: {
@@ -53,7 +53,7 @@ export default function OwnerLayout() {
       <Tabs.Screen
         name="profil/index"
         options={{
-          title: 'Mon Profil',
+          title: 'Profil',
           tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
         }}
       />

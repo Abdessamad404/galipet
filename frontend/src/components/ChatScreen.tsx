@@ -11,8 +11,8 @@ import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
 export default function ChatScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>()
-  const { user } = useAuthStore()
+  const { id, otherName: paramName, otherAvatar: paramAvatar } = useLocalSearchParams<{ id: string; otherName?: string; otherAvatar?: string }>()
+  const { profile: user } = useAuthStore()
 
   const [conversation, setConversation] = useState<Conversation | null>(null)
   const [messages, setMessages]         = useState<Message[]>([])
@@ -28,8 +28,9 @@ export default function ChatScreen() {
     load()
     // Subscribe to realtime
     channelRef.current = messageService.subscribeToConversation(id, (msg) => {
+      // Skip own messages — handled by optimistic update + send() resolution
+      if (msg.sender_id === user?.id) return
       setMessages((prev) => {
-        // Avoid duplicates (optimistic update might have added it already)
         if (prev.find((m) => m.id === msg.id)) return prev
         return [...prev, msg]
       })
@@ -44,10 +45,12 @@ export default function ChatScreen() {
   async function load() {
     if (!id) return
     try {
-      // Load messages
       const msgs = await messageService.getMessages(id)
       setMessages(msgs)
-      setTimeout(() => flatRef.current?.scrollToEnd({ animated: false }), 100)
+      // Multiple attempts — web needs a reflow before scrollToEnd works
+      setTimeout(() => flatRef.current?.scrollToEnd({ animated: false }), 50)
+      setTimeout(() => flatRef.current?.scrollToEnd({ animated: false }), 200)
+      setTimeout(() => flatRef.current?.scrollToEnd({ animated: false }), 500)
     } catch {}
     finally { setLoading(false) }
   }
@@ -83,23 +86,28 @@ export default function ChatScreen() {
     }
   }
 
-  // Determine other participant name for header
+  // Use params immediately, refine from conversation once loaded
   const otherName = (() => {
-    if (!conversation || !user) return '...'
-    const other = user.id === conversation.owner_id ? conversation.pro : conversation.owner
-    return (other as any).company_name || `${other.first_name} ${other.last_name}`
+    if (conversation && user) {
+      const other = user.id === conversation.owner_id ? conversation.pro : conversation.owner
+      return (other as any).company_name || `${other.first_name} ${other.last_name}`
+    }
+    return paramName || '...'
   })()
 
   const otherAvatar = (() => {
-    if (!conversation || !user) return null
-    const other = user.id === conversation.owner_id ? conversation.pro : conversation.owner
-    return other.avatar_url
+    if (conversation && user) {
+      const other = user.id === conversation.owner_id ? conversation.pro : conversation.owner
+      return other.avatar_url
+    }
+    return paramAvatar || null
   })()
 
   const otherInitials = (() => {
-    if (!conversation || !user) return '?'
-    const other = user.id === conversation.owner_id ? conversation.pro : conversation.owner
-    return `${other.first_name[0]}${other.last_name[0]}`
+    const name = otherName
+    if (!name || name === '...') return '?'
+    const parts = name.trim().split(' ')
+    return parts.length >= 2 ? `${parts[0][0]}${parts[1][0]}` : name[0]
   })()
 
   // Load conversation details (for header)
@@ -141,8 +149,10 @@ export default function ChatScreen() {
         ref={flatRef}
         data={messages}
         keyExtractor={(m) => m.id}
+        style={{ flex: 1 }}
         contentContainerStyle={styles.messagesList}
         onContentSizeChange={() => flatRef.current?.scrollToEnd({ animated: false })}
+        onLayout={() => flatRef.current?.scrollToEnd({ animated: false })}
         renderItem={({ item, index }) => {
           const isMe      = item.sender_id === user?.id
           const prevMsg   = index > 0 ? messages[index - 1] : null
@@ -189,6 +199,12 @@ export default function ChatScreen() {
           maxLength={2000}
           returnKeyType="send"
           onSubmitEditing={Platform.OS !== 'web' ? handleSend : undefined}
+          onKeyPress={Platform.OS === 'web' ? (e: any) => {
+            if (e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
+              e.preventDefault()
+              handleSend()
+            }
+          } : undefined}
         />
         <TouchableOpacity
           style={[styles.sendBtn, (!text.trim() || sending) && styles.sendBtnDisabled]}

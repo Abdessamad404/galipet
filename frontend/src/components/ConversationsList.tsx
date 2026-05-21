@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function ConversationsList({ role }: Props) {
-  const { user }  = useAuthStore()
+  const { profile: user } = useAuthStore()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading]     = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -37,10 +37,11 @@ export default function ConversationsList({ role }: Props) {
   }
 
   function openChat(conversation: Conversation) {
-    const path = role === 'owner'
-      ? `/(owner)/messages/${conversation.id}`
-      : `/(pro)/messages/${conversation.id}`
-    router.push(path as any)
+    const other    = user?.id === conversation.owner_id ? conversation.pro : conversation.owner
+    const name     = (other as any).company_name || `${other.first_name} ${other.last_name}`
+    const avatar   = other.avatar_url ?? ''
+    const base     = role === 'owner' ? '/(owner)/messages' : '/(pro)/messages'
+    router.push({ pathname: `${base}/[id]` as any, params: { id: conversation.id, otherName: name, otherAvatar: avatar } })
   }
 
   if (loading) {
@@ -69,10 +70,13 @@ export default function ConversationsList({ role }: Props) {
           </View>
         ) : (
           conversations.map((conv) => {
-            const other  = user?.id === conv.owner_id ? conv.pro : conv.owner
-            const name   = (other as any).company_name || `${other.first_name} ${other.last_name}`
-            const initials = `${other.first_name[0]}${other.last_name[0]}`
-            const time   = new Date(conv.updated_at).toLocaleDateString('fr-FR', {
+            const other    = user?.id === conv.owner_id ? conv.pro : conv.owner
+            if (!other) return null
+            const name     = (other as any).company_name || `${other.first_name} ${other.last_name}`
+            const initials = other.first_name?.[0] && other.last_name?.[0]
+              ? `${other.first_name[0]}${other.last_name[0]}`
+              : '?'
+            const time     = new Date(conv.updated_at).toLocaleDateString('fr-FR', {
               day: 'numeric', month: 'short',
             })
 
