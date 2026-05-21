@@ -67,10 +67,12 @@ export default function ProMap({
       if (cancelled || !mapContainerRef.current || mapRef.current) return
 
       const map = L.map(mapContainerRef.current, {
-        center:        [location.lat, location.lng],
-        zoom:          radiusToZoom(radius),
-        zoomControl:   true,
-        zoomAnimation: false,   // prevents opacity flicker on zoom
+        center:             [location.lat, location.lng],
+        zoom:               radiusToZoom(radius),
+        zoomControl:        true,
+        zoomAnimation:      true,
+        wheelPxPerZoomLevel: 1000,  // default 60 — higher = less sensitive scroll zoom
+        wheelDebounceTime:  1000,   // ms between wheel events
       })
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
