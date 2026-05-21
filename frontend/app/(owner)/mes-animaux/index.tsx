@@ -4,7 +4,7 @@ import {
   StyleSheet, ActivityIndicator, Image, RefreshControl,
 } from 'react-native'
 import { router, useFocusEffect } from 'expo-router'
-import { Plus, PawPrint, ChevronRight } from 'lucide-react-native'
+import { Plus, PawPrint, ChevronRight, LayoutGrid, List } from 'lucide-react-native'
 import { petService } from '@/services/pet.service'
 import { Pet } from '@/types'
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme'
@@ -24,9 +24,10 @@ const SIZE_LABELS: Record<string, string> = {
 }
 
 export default function MesAnimauxScreen() {
-  const [pets, setPets]       = useState<Pet[]>([])
-  const [loading, setLoading] = useState(true)
+  const [pets, setPets]             = useState<Pet[]>([])
+  const [loading, setLoading]       = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [isGrid, setIsGrid]         = useState(false)
 
   // useFocusEffect recharge la liste chaque fois qu'on revient sur cet écran
   // (utile après création ou modification d'un animal)
@@ -63,17 +64,21 @@ export default function MesAnimauxScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Mes Animaux</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => router.push('/(owner)/mes-animaux/nouveau')}
-          activeOpacity={0.8}
-        >
-          <Plus size={20} color={Colors.textInverse} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.toggleBtn} onPress={() => setIsGrid((g) => !g)} activeOpacity={0.7}>
+            {isGrid
+              ? <List size={18} color={Colors.textSecondary} />
+              : <LayoutGrid size={18} color={Colors.textSecondary} />
+            }
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addButton} onPress={() => router.push('/(owner)/mes-animaux/nouveau')} activeOpacity={0.8}>
+            <Plus size={20} color={Colors.textInverse} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.list, pets.length === 0 && styles.listEmpty]}
+        contentContainerStyle={[isGrid ? styles.grid : styles.list, pets.length === 0 && styles.listEmpty]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -84,6 +89,14 @@ export default function MesAnimauxScreen() {
       >
         {pets.length === 0 ? (
           <EmptyState />
+        ) : isGrid ? (
+          pets.map((pet) => (
+            <PetGridCard
+              key={pet.id}
+              pet={pet}
+              onPress={() => router.push(`/(owner)/mes-animaux/${pet.id}`)}
+            />
+          ))
         ) : (
           pets.map((pet) => (
             <PetCard
@@ -95,6 +108,30 @@ export default function MesAnimauxScreen() {
         )}
       </ScrollView>
     </View>
+  )
+}
+
+// ─────────────────────────────────────────────
+// PetGridCard
+// ─────────────────────────────────────────────
+function PetGridCard({ pet, onPress }: { pet: Pet; onPress: () => void }) {
+  return (
+    <TouchableOpacity style={styles.gridCard} onPress={onPress} activeOpacity={0.7}>
+      <View style={styles.gridPhoto}>
+        {pet.main_photo_url ? (
+          <Image source={{ uri: pet.main_photo_url }} style={styles.gridImage} />
+        ) : (
+          <Text style={styles.gridEmoji}>{getEmoji(pet.species)}</Text>
+        )}
+      </View>
+      <View style={styles.gridInfo}>
+        <Text style={styles.gridName} numberOfLines={1}>{pet.name}</Text>
+        <Text style={styles.gridSpecies} numberOfLines={1}>{pet.species}</Text>
+        {pet.is_verified && (
+          <Text style={styles.gridVerified}>✓ Vérifié</Text>
+        )}
+      </View>
+    </TouchableOpacity>
   )
 }
 
@@ -194,8 +231,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  toggleBtn: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: Colors.surfaceAlt,
+    alignItems: 'center', justifyContent: 'center',
+  },
+
   list: { padding: Spacing['2xl'], gap: Spacing.md },
   listEmpty: { flex: 1 },
+  grid: {
+    padding: Spacing['2xl'],
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
 
   card: {
     backgroundColor: Colors.surface,
@@ -220,6 +270,30 @@ const styles = StyleSheet.create({
   cardName: { fontSize: Typography.md, fontWeight: Typography.semibold, color: Colors.textPrimary },
   cardSpecies: { fontSize: Typography.sm, color: Colors.textSecondary },
   cardTags: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs, marginTop: Spacing.xs },
+
+  // Grid card
+  gridCard: {
+    width: '47%',
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+    ...Shadow.sm,
+  },
+  gridPhoto: {
+    width: '100%',
+    aspectRatio: 1,
+    backgroundColor: Colors.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gridImage: { width: '100%', height: '100%' },
+  gridEmoji: { fontSize: 42 },
+  gridInfo: { padding: Spacing.sm, gap: 2 },
+  gridName: { fontSize: Typography.sm, fontWeight: Typography.semibold, color: Colors.textPrimary },
+  gridSpecies: { fontSize: Typography.xs, color: Colors.textSecondary },
+  gridVerified: { fontSize: Typography.xs, color: Colors.success, marginTop: 2 },
 
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.md, paddingHorizontal: Spacing['3xl'] },
   emptyTitle: { fontSize: Typography.lg, fontWeight: Typography.semibold, color: Colors.textPrimary, textAlign: 'center' },

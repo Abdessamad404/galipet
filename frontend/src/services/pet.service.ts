@@ -57,4 +57,17 @@ export const petService = {
     const { data } = await api.delete<{ pet: Pet }>(`/pets/${id}/gallery/${index}`)
     return data.pet
   },
+
+  async uploadHealthDoc(id: string, uri: string, filename: string): Promise<Pet> {
+    const formData = new FormData()
+    if (Platform.OS === 'web') {
+      const res = await fetch(uri)
+      const blob = await res.blob()
+      formData.append('document', blob, filename)
+    } else {
+      formData.append('document', { uri, type: 'application/pdf', name: filename } as any)
+    }
+    const { data } = await api.post<{ pet: Pet }>(`/pets/${id}/health-docs`, formData, { timeout: 60000 })
+    return data.pet
+  },
 }

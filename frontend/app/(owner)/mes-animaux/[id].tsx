@@ -5,7 +5,8 @@ import {
 } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
-import { ChevronLeft, Camera, Trash2, CheckCircle } from 'lucide-react-native'
+import * as DocumentPicker from 'expo-document-picker'
+import { ChevronLeft, Camera, Trash2, CheckCircle, Plus, X, FileText, Image as ImageIcon } from 'lucide-react-native'
 import { petService } from '@/services/pet.service'
 import { Pet } from '@/types'
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme'
@@ -24,7 +25,17 @@ export default function PetDetailScreen() {
   const [loading, setLoading]   = useState(true)
   const [saving, setSaving]     = useState(false)
   const [saved, setSaved]       = useState(false)
-  const [photoUploading, setPhotoUploading] = useState(false)
+  const [photoUploading, setPhotoUploading]       = useState(false)
+  const [galleryUploading, setGalleryUploading]   = useState(false)
+  const [docUploading, setDocUploading]           = useState(false)
+
+  // Galerie + docs santé (locaux, mise à jour immédiate via API)
+  const [galleryUrls, setGalleryUrls]   = useState<string[]>([])
+  const [healthDocUrls, setHealthDocUrls] = useState<string[]>([])
+
+  // Vaccinations — édition en liste de tags
+  const [vaccinations, setVaccinations]   = useState<string[]>([])
+  const [vaccinInput, setVaccinInput]     = useState('')
 
   // Champs éditables
   const [name, setName]         = useState('')
@@ -68,6 +79,9 @@ export default function PetDetailScreen() {
       setSocialTags(data.personality_social_tags ?? [])
       setSociabTags(data.personality_sociability_tags ?? [])
       setLearningTags(data.personality_learning_tags ?? [])
+      setGalleryUrls(data.gallery_urls ?? [])
+      setHealthDocUrls(data.health_doc_urls ?? [])
+      setVaccinations(data.vaccinations ?? [])
     } catch {
       showAlert('Erreur', 'Animal introuvable.')
       router.back()
@@ -116,6 +130,7 @@ export default function PetDetailScreen() {
         personality_social_tags: socialTags,
         personality_sociability_tags: sociabTags,
         personality_learning_tags: learningTags,
+        vaccinations,
       })
       setPet(updated)
       setSaved(true)
@@ -150,6 +165,69 @@ export default function PetDetailScreen() {
 
     await petService.deletePet(id)
     router.replace('/(owner)/mes-animaux')
+  }
+
+  async function handleAddGalleryPhoto() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (!permission.granted) return
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true, aspect: [1, 1], quality: 0.8,
+    })
+    if (result.canceled || !result.assets[0]) return
+    setGalleryUploading(true)
+    try {
+      const updated = await petService.uploadGalleryPhoto(id, result.assets[0].uri)
+      setGalleryUrls(updated.gallery_urls ?? [])
+    } catch (e: any) {
+      showAlert('Erreur', e?.response?.data?.error || 'Impossible d\'ajouter la photo.')
+    } finally {
+      setGalleryUploading(false)
+    }
+  }
+
+  async function handleDeleteGalleryPhoto(index: number) {
+    const confirmed = Platform.OS === 'web'
+      ? window.confirm('Supprimer cette photo ?')
+      : await new Promise<boolean>((resolve) =>
+          Alert.alert('Supprimer', 'Supprimer cette photo ?', [
+            { text: 'Annuler', style: 'cancel', onPress: () => resolve(false) },
+            { text: 'Supprimer', style: 'destructive', onPress: () => resolve(true) },
+          ])
+        )
+    if (!confirmed) return
+    try {
+      const updated = await petService.deleteGalleryPhoto(id, index)
+      setGalleryUrls(updated.gallery_urls ?? [])
+    } catch {
+      showAlert('Erreur', 'Impossible de supprimer la photo.')
+    }
+  }
+
+  async function handleUploadHealthDoc() {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'], copyToCacheDirectory: true })
+      if (result.canceled || !result.assets?.[0]) return
+      const asset = result.assets[0]
+      setDocUploading(true)
+      const updated = await petService.uploadHealthDoc(id, asset.uri, asset.name)
+      setHealthDocUrls(updated.health_doc_urls ?? [])
+    } catch (e: any) {
+      showAlert('Erreur', e?.response?.data?.error || 'Impossible d\'uploader le document.')
+    } finally {
+      setDocUploading(false)
+    }
+  }
+
+  function addVaccination() {
+    const v = vaccinInput.trim()
+    if (!v || vaccinations.includes(v)) return
+    setVaccinations((prev) => [...prev, v])
+    setVaccinInput('')
+  }
+
+  function removeVaccination(v: string) {
+    setVaccinations((prev) => prev.filter((x) => x !== v))
   }
 
   function toggleTag(tag: string, list: string[], setList: (t: string[]) => void) {
@@ -234,6 +312,79 @@ export default function PetDetailScreen() {
           {hasLof && (
             <Field label="Informations LOF" value={lofInfo} onChangeText={setLofInfo} placeholder="Numéro LOF, éleveur..." />
           )}
+        </SectionCard>
+
+        {/* Vaccinations */}
+        <SectionCard title="VACCINS & TRAITEMENTS">
+          <View style={styles.vaccinRow}>
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              value={vaccinInput}
+              onChangeText={setVaccinInput}
+              placeholder="Ex : Rage, Leptospirose..."
+              placeholderTextColor={Colors.textMuted}
+              onSubmitEditing={addVaccination}
+              returnKeyType="done"
+            />
+            <TouchableOpacity style={styles.vaccinAddBtn} onPress={addVaccination} activeOpacity={0.7}>
+              <Plus size={18} color={Colors.textInverse} />
+            </TouchableOpacity>
+          </View>
+          {vaccinations.length > 0 && (
+            <View style={styles.pillsRow}>
+              {vaccinations.map((v) => (
+                <TouchableOpacity key={v} style={styles.vaccinTag} onPress={() => removeVaccination(v)} activeOpacity={0.7}>
+                  <Text style={styles.vaccinTagText}>{v}</Text>
+                  <X size={12} color={Colors.primary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+          {vaccinations.length === 0 && (
+            <Text style={styles.emptyHint}>Aucun vaccin enregistré. Tapez un nom et appuyez sur +</Text>
+          )}
+        </SectionCard>
+
+        {/* Galerie photos */}
+        <SectionCard title="GALERIE PHOTOS">
+          <View style={styles.galleryGrid}>
+            {galleryUrls.map((url, i) => (
+              <View key={i} style={styles.galleryCell}>
+                <Image source={{ uri: url }} style={styles.galleryImg} />
+                <TouchableOpacity style={styles.galleryDelete} onPress={() => handleDeleteGalleryPhoto(i)} activeOpacity={0.7}>
+                  <X size={12} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            ))}
+            {galleryUrls.length < 6 && (
+              <TouchableOpacity style={styles.galleryAdd} onPress={handleAddGalleryPhoto} activeOpacity={0.7} disabled={galleryUploading}>
+                {galleryUploading
+                  ? <ActivityIndicator size="small" color={Colors.primary} />
+                  : <><ImageIcon size={22} color={Colors.textMuted} /><Text style={styles.galleryAddText}>{galleryUrls.length}/6</Text></>
+                }
+              </TouchableOpacity>
+            )}
+          </View>
+        </SectionCard>
+
+        {/* Documents santé */}
+        <SectionCard title="DOCUMENTS SANTÉ">
+          {healthDocUrls.length === 0 ? (
+            <Text style={styles.emptyHint}>Aucun document. Carnet de santé, ordonnances, etc.</Text>
+          ) : (
+            healthDocUrls.map((url, i) => (
+              <View key={i} style={styles.docRow}>
+                <FileText size={16} color={Colors.primary} />
+                <Text style={styles.docLabel} numberOfLines={1}>Document {i + 1}</Text>
+              </View>
+            ))
+          )}
+          <TouchableOpacity style={styles.uploadDocBtn} onPress={handleUploadHealthDoc} activeOpacity={0.7} disabled={docUploading}>
+            {docUploading
+              ? <ActivityIndicator size="small" color={Colors.primary} />
+              : <><Plus size={16} color={Colors.primary} /><Text style={styles.uploadDocText}>Ajouter un document (PDF / image)</Text></>
+            }
+          </TouchableOpacity>
         </SectionCard>
 
         {/* Personnalité */}
@@ -432,6 +583,24 @@ const styles = StyleSheet.create({
   buttonDisabled: { opacity: 0.6 },
   saveButtonText: { color: Colors.textInverse, fontSize: Typography.base, fontWeight: Typography.semibold },
   savedRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+
+  vaccinRow:     { flexDirection: 'row', gap: Spacing.sm, alignItems: 'center' },
+  vaccinAddBtn:  { width: 40, height: 40, borderRadius: Radius.md, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
+  vaccinTag:     { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: Radius.full, backgroundColor: Colors.primaryLight, borderWidth: 1, borderColor: Colors.primary },
+  vaccinTagText: { fontSize: Typography.sm, color: Colors.primaryDark },
+  emptyHint:     { fontSize: Typography.xs, color: Colors.textMuted, fontStyle: 'italic' },
+
+  galleryGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  galleryCell:    { width: 90, height: 90, borderRadius: Radius.md, overflow: 'hidden', position: 'relative' },
+  galleryImg:     { width: 90, height: 90 },
+  galleryDelete:  { position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
+  galleryAdd:     { width: 90, height: 90, borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.border, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: 4 },
+  galleryAddText: { fontSize: Typography.xs, color: Colors.textMuted },
+
+  docRow:        { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing.xs },
+  docLabel:      { flex: 1, fontSize: Typography.sm, color: Colors.textPrimary },
+  uploadDocBtn:  { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing.sm, marginTop: Spacing.xs },
+  uploadDocText: { fontSize: Typography.sm, color: Colors.primary },
 
   dangerZone: {
     borderWidth: 1, borderColor: Colors.errorLight,
