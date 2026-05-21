@@ -19,6 +19,9 @@ const ACTIVITY_TYPES = [
   { key: 'education',   label: '🎓 Éducation' },
 ]
 
+const VALID_ACTIVITY_KEYS = ACTIVITY_TYPES.map((t) => t.key)
+const filterActivityTypes = (types: string[]) => types.filter((t) => VALID_ACTIVITY_KEYS.includes(t))
+
 const DAYS = [
   { key: 'lun', label: 'Lundi' },
   { key: 'mar', label: 'Mardi' },
@@ -30,7 +33,7 @@ const DAYS = [
 ]
 
 export default function ProProfileScreen() {
-  const { profile, initialize } = useAuthStore()
+  const { profile, setProfile } = useAuthStore()
 
   const [isLoading, setIsLoading]       = useState(false)
   const [isSaved, setIsSaved]           = useState(false)
@@ -52,7 +55,7 @@ export default function ProProfileScreen() {
   const [companyEmail, setCompanyEmail]     = useState(profile?.company_email ?? '')
   const [siretIce, setSiretIce]             = useState(profile?.siret_ice ?? '')
   const [companyDesc, setCompanyDesc]       = useState(profile?.company_description ?? '')
-  const [activityTypes, setActivityTypes]   = useState<string[]>(profile?.activity_types ?? [])
+  const [activityTypes, setActivityTypes]   = useState<string[]>(filterActivityTypes(profile?.activity_types ?? []))
 
   // Certifications & Q&A (chargés depuis l'API)
   const [certifications, setCertifications] = useState<Certification[]>([])
@@ -104,7 +107,7 @@ export default function ProProfileScreen() {
       setCompanyEmail(profile.company_email ?? '')
       setSiretIce(profile.siret_ice ?? '')
       setCompanyDesc(profile.company_description ?? '')
-      setActivityTypes(profile.activity_types ?? [])
+      setActivityTypes(filterActivityTypes(profile.activity_types ?? []))
       setAvatarUri(profile.avatar_url ?? null)
       setPaymentConfigured(profile.payment_configured ?? false)
       const wh = (profile.working_hours as any) ?? {}
@@ -170,7 +173,7 @@ export default function ProProfileScreen() {
     setIsLoading(true)
     setIsSaved(false)
     try {
-      await profileService.updateMe({
+      const updated = await profileService.updateMe({
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         phone: phone.trim() || null,
@@ -187,7 +190,7 @@ export default function ProProfileScreen() {
         working_hours: workingHours,
         payment_configured: paymentConfigured,
       } as any)
-      await initialize()
+      setProfile(updated)   // met à jour le store sans re-fetch (évite reset des champs)
       setIsSaved(true)
       setTimeout(() => setIsSaved(false), 3000)
     } catch {
@@ -198,16 +201,22 @@ export default function ProProfileScreen() {
   }
 
   async function handleDeleteCert(id: string) {
-    Alert.alert('Supprimer', 'Supprimer cette certification ?', [
-      { text: 'Annuler', style: 'cancel' },
-      {
-        text: 'Supprimer', style: 'destructive',
-        onPress: async () => {
-          await profileService.deleteCertification(id)
-          setCertifications((prev) => prev.filter((c) => c.id !== id))
-        },
-      },
-    ])
+    const confirmed = Platform.OS === 'web'
+      ? window.confirm('Supprimer cette certification ?')
+      : await new Promise<boolean>((resolve) =>
+          Alert.alert('Supprimer', 'Supprimer cette certification ?', [
+            { text: 'Annuler', style: 'cancel', onPress: () => resolve(false) },
+            { text: 'Supprimer', style: 'destructive', onPress: () => resolve(true) },
+          ])
+        )
+    if (!confirmed) return
+    try {
+      await profileService.deleteCertification(id)
+      setCertifications((prev) => prev.filter((c) => c.id !== id))
+    } catch {
+      if (Platform.OS === 'web') window.alert('Impossible de supprimer la certification.')
+      else Alert.alert('Erreur', 'Impossible de supprimer la certification.')
+    }
   }
 
   function handleAddCert() {
@@ -236,16 +245,22 @@ export default function ProProfileScreen() {
   }
 
   async function handleDeleteQA(id: string) {
-    Alert.alert('Supprimer', 'Supprimer cette Q&A ?', [
-      { text: 'Annuler', style: 'cancel' },
-      {
-        text: 'Supprimer', style: 'destructive',
-        onPress: async () => {
-          await profileService.deleteQA(id)
-          setAboutQA((prev) => prev.filter((q) => q.id !== id))
-        },
-      },
-    ])
+    const confirmed = Platform.OS === 'web'
+      ? window.confirm('Supprimer cette Q&A ?')
+      : await new Promise<boolean>((resolve) =>
+          Alert.alert('Supprimer', 'Supprimer cette Q&A ?', [
+            { text: 'Annuler', style: 'cancel', onPress: () => resolve(false) },
+            { text: 'Supprimer', style: 'destructive', onPress: () => resolve(true) },
+          ])
+        )
+    if (!confirmed) return
+    try {
+      await profileService.deleteQA(id)
+      setAboutQA((prev) => prev.filter((q) => q.id !== id))
+    } catch {
+      if (Platform.OS === 'web') window.alert('Impossible de supprimer la Q&A.')
+      else Alert.alert('Erreur', 'Impossible de supprimer la Q&A.')
+    }
   }
 
   async function handleQAModalSubmit() {

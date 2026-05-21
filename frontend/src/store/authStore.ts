@@ -36,6 +36,7 @@ interface AuthState {
   logout: () => Promise<void>
   forgotPassword: (email: string) => Promise<void>
   initialize: () => Promise<void>    // Appelé au démarrage de l'app
+  setProfile: (profile: Profile) => void  // Mise à jour directe après PATCH profil (évite re-fetch)
   clearError: () => void
 }
 
@@ -104,6 +105,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       throw error
     }
   },
+
+  setProfile: (profile) => set({ profile }),
 
   clearError: () => set({ error: null }),
 }))
