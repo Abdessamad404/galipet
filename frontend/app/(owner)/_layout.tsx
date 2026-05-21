@@ -1,11 +1,17 @@
-import { Tabs } from 'expo-router'
+import { Tabs, Redirect } from 'expo-router'
 import { Compass, PawPrint, User, Menu, BookOpen, MessageCircle } from 'lucide-react-native'
 import { Colors, Typography } from '@/constants/theme'
+import { useAuthStore } from '@/store/authStore'
 
 // Tab navigator pour le rôle OWNER
-// 4 tabs : Explorer · Mes Animaux · Mon Profil · Menu Gali'Pet
+// Guard: si le profil n'est pas owner, on redirige vers le bon navigator
 
 export default function OwnerLayout() {
+  const { profile } = useAuthStore()
+
+  if (!profile) return <Redirect href="/auth/login" />
+  if (profile.role !== 'owner') return <Redirect href="/(pro)/dashboard" />
+
   return (
     <Tabs
       screenOptions={{

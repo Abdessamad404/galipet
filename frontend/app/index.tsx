@@ -26,10 +26,9 @@ export default function Index() {
   }
 
   // Redirection selon le rôle
-  // 'both' → on envoie vers owner par défaut (le switch de rôle sera dans F02)
-  if (profile.role === 'professional') {
-    return <Redirect href="/(pro)/dashboard" />
+  if (profile.role === 'owner') {
+    return <Redirect href="/(owner)/explorer" />
   }
 
-  return <Redirect href="/(owner)/explorer" />
+  return <Redirect href="/(pro)/dashboard" />
 }

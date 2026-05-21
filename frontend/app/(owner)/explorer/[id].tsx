@@ -11,6 +11,7 @@ import {
 import { professionalService, ProfessionalFull } from '@/services/professional.service'
 import { reviewService, Review, ProRating } from '@/services/review.service'
 import { messageService } from '@/services/message.service'
+import { useAuthStore } from '@/store/authStore'
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme'
 
 const ACTIVITY_LABELS: Record<string, string> = {
@@ -32,6 +33,7 @@ const DAY_LABELS: Record<string, string> = {
 // ─────────────────────────────────────────────
 export default function ProProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
+  const { profile: currentUser } = useAuthStore()
   const [pro, setPro]         = useState<ProfessionalFull | null>(null)
   const [rating, setRating]   = useState<ProRating | null>(null)
   const [reviews, setReviews] = useState<Review[]>([])
@@ -81,7 +83,8 @@ export default function ProProfileScreen() {
     )
   }
 
-  const initials = `${pro.first_name[0]}${pro.last_name[0]}`
+  const initials     = `${pro.first_name[0]}${pro.last_name[0]}`
+  const isOwnProfile = currentUser?.id === pro.id
 
   async function handleContact() {
     setContacting(true)
@@ -160,20 +163,22 @@ export default function ProProfileScreen() {
               <Calendar size={16} color={Colors.textInverse} />
               <Text style={styles.bookBtnText}>Réserver</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.contactBtn, { flex: 1 }]}
-              activeOpacity={0.85}
-              onPress={handleContact}
-              disabled={contacting}
-            >
-              {contacting
-                ? <ActivityIndicator size="small" color={Colors.primary} />
-                : <>
-                    <MessageSquare size={16} color={Colors.primary} />
-                    <Text style={styles.contactBtnText}>Contacter</Text>
-                  </>
-              }
-            </TouchableOpacity>
+            {!isOwnProfile && (
+              <TouchableOpacity
+                style={[styles.contactBtn, { flex: 1 }]}
+                activeOpacity={0.85}
+                onPress={handleContact}
+                disabled={contacting}
+              >
+                {contacting
+                  ? <ActivityIndicator size="small" color={Colors.primary} />
+                  : <>
+                      <MessageSquare size={16} color={Colors.primary} />
+                      <Text style={styles.contactBtnText}>Contacter</Text>
+                    </>
+                }
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 

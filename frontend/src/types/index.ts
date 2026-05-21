@@ -1,6 +1,6 @@
 // Types partagés dans tout le frontend — miroir des types backend
 
-export type UserRole = 'owner' | 'professional' | 'both'
+export type UserRole = 'owner' | 'professional'
 
 export interface DaySchedule {
   open: string    // "09:00"
@@ -105,7 +105,7 @@ export interface RegisterPayload {
   last_name: string
   email: string
   password: string
-  role: 'owner' | 'professional' | 'both'
+  role: UserRole
 }
 
 export interface LoginPayload {

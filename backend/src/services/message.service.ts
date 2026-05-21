@@ -32,6 +32,8 @@ export const messageService = {
 
   // ── Récupérer ou créer une conversation entre owner et pro ──
   async getOrCreate(ownerId: string, proId: string) {
+    if (ownerId === proId) throw new Error('Vous ne pouvez pas vous envoyer un message à vous-même.')
+
     const { data: existing } = await supabase
       .from('conversations')
       .select('id, owner_id, pro_id, created_at, updated_at')

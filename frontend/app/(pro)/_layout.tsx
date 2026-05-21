@@ -1,12 +1,17 @@
-import { Tabs } from 'expo-router'
+import { Tabs, Redirect } from 'expo-router'
 import { LayoutDashboard, CalendarDays, User, Menu, BookOpen, MessageCircle } from 'lucide-react-native'
 import { Colors, Typography } from '@/constants/theme'
+import { useAuthStore } from '@/store/authStore'
 
 // Tab navigator pour le rôle PROFESSIONAL
-// 4 tabs : Dashboard · Calendrier · Mon Profil · Menu Gali'Pet
-// Différence vs owner : Dashboard en 1er, pas d'icône Agenda dans le header (elle est dans la tab bar)
+// Guard: si le profil n'est pas professional, on redirige vers le bon navigator
 
 export default function ProLayout() {
+  const { profile } = useAuthStore()
+
+  if (!profile) return <Redirect href="/auth/login" />
+  if (profile.role !== 'professional') return <Redirect href="/(owner)/explorer" />
+
   return (
     <Tabs
       screenOptions={{
