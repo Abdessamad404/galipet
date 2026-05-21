@@ -22,6 +22,10 @@ export default function ChatScreen() {
 
   const flatRef    = useRef<FlatList>(null)
   const channelRef = useRef<RealtimeChannel | null>(null)
+  // Ref so the Realtime callback always reads the current user, even if profile
+  // loaded after this effect's closure was created (stale closure guard).
+  const userRef    = useRef(user)
+  useEffect(() => { userRef.current = user }, [user])
 
   useEffect(() => {
     if (!id) return
@@ -29,7 +33,7 @@ export default function ChatScreen() {
     // Subscribe to realtime
     channelRef.current = messageService.subscribeToConversation(id, (msg) => {
       // Skip own messages — handled by optimistic update + send() resolution
-      if (msg.sender_id === user?.id) return
+      if (msg.sender_id === userRef.current?.id) return
       setMessages((prev) => {
         if (prev.find((m) => m.id === msg.id)) return prev
         return [...prev, msg]
