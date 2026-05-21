@@ -10,6 +10,7 @@ import professionalRoutes from "./routes/professional.routes";
 import bookingRoutes from "./routes/booking.routes";
 import reviewRoutes from "./routes/review.routes";
 import messageRoutes from "./routes/message.routes";
+import dashboardRoutes from "./routes/dashboard.routes";
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use("/api/professionals", professionalRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/conversations", messageRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // --- Health check ---
 app.get("/health", (_req, res) => {
