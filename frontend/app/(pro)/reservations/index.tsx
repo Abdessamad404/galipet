@@ -3,8 +3,8 @@ import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
   ActivityIndicator, RefreshControl, Alert, Platform,
 } from 'react-native'
-import { useFocusEffect } from 'expo-router'
-import { Calendar, Check, X, CheckCircle } from 'lucide-react-native'
+import { useFocusEffect, router } from 'expo-router'
+import { Calendar, Check, X, CheckCircle, ChevronLeft } from 'lucide-react-native'
 import { bookingService, Booking, BookingStatus } from '@/services/booking.service'
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme'
 
@@ -96,6 +96,9 @@ export default function ProReservationsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.backBtn}>
+          <ChevronLeft size={22} color={Colors.textPrimary} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Réservations</Text>
         {pending.length > 0 && (
           <View style={styles.badge}>
@@ -229,9 +232,10 @@ const styles = StyleSheet.create({
 
   header: {
     flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
-    paddingHorizontal: Spacing['2xl'], paddingTop: Spacing['2xl'], paddingBottom: Spacing.base,
+    paddingHorizontal: Spacing.md, paddingTop: Spacing['2xl'], paddingBottom: Spacing.base,
     backgroundColor: Colors.surface, borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
+  backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: Typography.xl, fontWeight: Typography.bold, color: Colors.textPrimary },
   badge: {
     width: 22, height: 22, borderRadius: 11,

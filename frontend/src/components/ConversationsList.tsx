@@ -4,7 +4,7 @@ import {
   ActivityIndicator, RefreshControl, Image,
 } from 'react-native'
 import { useFocusEffect, router } from 'expo-router'
-import { MessageCircle } from 'lucide-react-native'
+import { MessageCircle, ChevronLeft } from 'lucide-react-native'
 import { messageService, Conversation } from '@/services/message.service'
 import { useAuthStore } from '@/store/authStore'
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme'
@@ -51,6 +51,9 @@ export default function ConversationsList({ role }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.backBtn}>
+          <ChevronLeft size={22} color={Colors.textPrimary} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Messages</Text>
       </View>
 
@@ -115,9 +118,11 @@ const styles = StyleSheet.create({
   centered:  { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   header: {
-    paddingHorizontal: Spacing['2xl'], paddingTop: Spacing['2xl'], paddingBottom: Spacing.base,
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+    paddingHorizontal: Spacing.md, paddingTop: Spacing['2xl'], paddingBottom: Spacing.base,
     backgroundColor: Colors.surface, borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
+  backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: Typography.xl, fontWeight: Typography.bold, color: Colors.textPrimary },
 
   list:      { paddingVertical: Spacing.sm },

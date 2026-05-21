@@ -4,8 +4,8 @@ import {
   ActivityIndicator, RefreshControl, Alert, Platform,
   Modal, TextInput, KeyboardAvoidingView,
 } from 'react-native'
-import { useFocusEffect } from 'expo-router'
-import { Calendar, Clock, X, Star, MessageSquare } from 'lucide-react-native'
+import { useFocusEffect, router } from 'expo-router'
+import { Calendar, Clock, X, Star, MessageSquare, ChevronLeft } from 'lucide-react-native'
 import { bookingService, Booking, BookingStatus } from '@/services/booking.service'
 import { reviewService, Review } from '@/services/review.service'
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme'
@@ -135,6 +135,9 @@ export default function MesReservationsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.backBtn}>
+          <ChevronLeft size={22} color={Colors.textPrimary} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Mes Réservations</Text>
       </View>
 
@@ -294,9 +297,11 @@ const styles = StyleSheet.create({
   centered:  { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   header: {
-    paddingHorizontal: Spacing['2xl'], paddingTop: Spacing['2xl'], paddingBottom: Spacing.base,
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+    paddingHorizontal: Spacing.md, paddingTop: Spacing['2xl'], paddingBottom: Spacing.base,
     backgroundColor: Colors.surface, borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
+  backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: Typography.xl, fontWeight: Typography.bold, color: Colors.textPrimary },
 
   list:      { padding: Spacing['2xl'], gap: Spacing.md },

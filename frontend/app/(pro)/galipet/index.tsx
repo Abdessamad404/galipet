@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Alert,
   Platform,
-  Image,
 } from 'react-native'
 import { router } from 'expo-router'
 import {
@@ -22,7 +21,7 @@ import { useAuthStore } from '@/store/authStore'
 import { Colors, Typography, Spacing, Radius } from '@/constants/theme'
 
 export default function GalipetMenuProScreen() {
-  const { logout, profile } = useAuthStore()
+  const { logout } = useAuthStore()
 
   async function handleLogout() {
     const confirmed = Platform.OS === 'web'
@@ -44,22 +43,6 @@ export default function GalipetMenuProScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.userHeader}>
-        <View style={styles.avatar}>
-          {profile?.avatar_url ? (
-            <Image source={{ uri: profile.avatar_url }} style={styles.avatarImage} />
-          ) : (
-            <Text style={styles.avatarText}>
-              {profile?.first_name?.[0]}{profile?.last_name?.[0]}
-            </Text>
-          )}
-        </View>
-        <View>
-          <Text style={styles.userName}>{profile?.first_name} {profile?.last_name}</Text>
-          <Text style={styles.userRole}>Professionnel</Text>
-        </View>
-      </View>
-
       <View style={styles.heroCard}>
         <Text style={styles.heroLabel}>ACTION PRINCIPALE</Text>
         <Text style={styles.heroTitle}>Découvrir nos services</Text>
@@ -157,27 +140,6 @@ function MenuItem({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   content: { paddingBottom: 40 },
-  userHeader: {
-    flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
-    paddingHorizontal: Spacing['2xl'], paddingVertical: Spacing.xl,
-    backgroundColor: Colors.surface, borderBottomWidth: 1, borderBottomColor: Colors.border,
-  },
-  avatar: {
-    width: 52, height: 52, borderRadius: 26,
-    backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  avatarImage: { width: 52, height: 52, borderRadius: 26 },
-  avatarText: {
-    color: Colors.textInverse,
-    fontSize: Typography.lg,
-    fontWeight: Typography.bold,
-    lineHeight: Typography.lg,
-    textAlign: 'center',
-    textAlignVertical: 'center',
-  },
-  userName: { fontSize: Typography.base, fontWeight: Typography.semibold, color: Colors.textPrimary },
-  userRole: { fontSize: Typography.sm, color: Colors.textSecondary },
   heroCard: {
     margin: Spacing['2xl'], backgroundColor: '#1B4D3E',
     borderRadius: Radius.lg, padding: Spacing.xl, gap: Spacing.sm,
