@@ -47,6 +47,9 @@ export const updateProfileSchema = z.object({
   // Géolocalisation (mise à jour quand le pro renseigne son adresse)
   lat: z.number().min(-90).max(90).nullable().optional(),
   lng: z.number().min(-180).max(180).nullable().optional(),
+
+  // Paiement — le pro confirme avoir configuré ses moyens de paiement
+  payment_configured: z.boolean().optional(),
 })
 
 // --- Certifications ---

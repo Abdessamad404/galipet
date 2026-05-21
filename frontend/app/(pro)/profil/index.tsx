@@ -5,7 +5,8 @@ import {
 } from 'react-native'
 import DateInput from '@/components/DateInput'
 import * as ImagePicker from 'expo-image-picker'
-import { Camera, CheckCircle, Plus, Trash2 } from 'lucide-react-native'
+import { Camera, CheckCircle, Plus, Trash2, CreditCard } from 'lucide-react-native'
+import { Switch } from 'react-native'
 import { useAuthStore } from '@/store/authStore'
 import { profileService } from '@/services/profile.service'
 import { Certification, ProAboutQA } from '@/types'
@@ -58,11 +59,36 @@ export default function ProProfileScreen() {
   const [aboutQA, setAboutQA]               = useState<ProAboutQA[]>([])
   const [loadingExtra, setLoadingExtra]     = useState(true)
 
+  // Paiement configuré
+  const [paymentConfigured, setPaymentConfigured] = useState(profile?.payment_configured ?? false)
+
+  // Horaires de travail
+  type DayKey = 'lun'|'mar'|'mer'|'jeu'|'ven'|'sam'|'dim'
+  type DaySchedule = { open: string; close: string } | 'closed'
+  const initHours = (): Record<DayKey, DaySchedule> => {
+    const wh = (profile?.working_hours as any) ?? {}
+    const defaults: Record<DayKey, DaySchedule> = {
+      lun: 'closed', mar: 'closed', mer: 'closed', jeu: 'closed',
+      ven: 'closed', sam: 'closed', dim: 'closed',
+    }
+    for (const k of Object.keys(defaults) as DayKey[]) {
+      if (wh[k]) defaults[k] = wh[k]
+    }
+    return defaults
+  }
+  const [workingHours, setWorkingHours] = useState<Record<DayKey, DaySchedule>>(initHours)
+
   // Modal ajout certification
   const [certModalVisible, setCertModalVisible] = useState(false)
   const [certModalTitle, setCertModalTitle]     = useState('')
   const [certModalDesc, setCertModalDesc]       = useState('')
   const [certModalLoading, setCertModalLoading] = useState(false)
+
+  // Modal ajout Q&A
+  const [qaModalVisible, setQaModalVisible]   = useState(false)
+  const [qaModalQ, setQaModalQ]               = useState('')
+  const [qaModalA, setQaModalA]               = useState('')
+  const [qaModalLoading, setQaModalLoading]   = useState(false)
 
   useEffect(() => {
     if (profile) {
@@ -80,6 +106,12 @@ export default function ProProfileScreen() {
       setCompanyDesc(profile.company_description ?? '')
       setActivityTypes(profile.activity_types ?? [])
       setAvatarUri(profile.avatar_url ?? null)
+      setPaymentConfigured(profile.payment_configured ?? false)
+      const wh = (profile.working_hours as any) ?? {}
+      const days: DayKey[] = ['lun','mar','mer','jeu','ven','sam','dim']
+      const hours: Record<DayKey, DaySchedule> = {} as any
+      for (const k of days) hours[k] = wh[k] ?? 'closed'
+      setWorkingHours(hours)
     }
   }, [profile?.id])
 
@@ -152,6 +184,8 @@ export default function ProProfileScreen() {
         siret_ice: siretIce.trim() || null,
         company_description: companyDesc.trim() || null,
         activity_types: activityTypes,
+        working_hours: workingHours,
+        payment_configured: paymentConfigured,
       } as any)
       await initialize()
       setIsSaved(true)
@@ -212,6 +246,43 @@ export default function ProProfileScreen() {
         },
       },
     ])
+  }
+
+  async function handleQAModalSubmit() {
+    if (!qaModalQ.trim() || !qaModalA.trim()) return
+    setQaModalLoading(true)
+    try {
+      const qa = await profileService.createQA({
+        question: qaModalQ.trim(),
+        answer: qaModalA.trim(),
+        order_index: aboutQA.length,
+      })
+      setAboutQA((prev) => [...prev, qa])
+      setQaModalVisible(false)
+      setQaModalQ('')
+      setQaModalA('')
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || 'Impossible d\'ajouter la Q&A.'
+      if (Platform.OS === 'web') window.alert(msg)
+      else Alert.alert('Erreur', msg)
+    } finally {
+      setQaModalLoading(false)
+    }
+  }
+
+  function toggleDay(key: DayKey) {
+    setWorkingHours((prev) => ({
+      ...prev,
+      [key]: prev[key] === 'closed' ? { open: '09:00', close: '18:00' } : 'closed',
+    }))
+  }
+
+  function updateDayTime(key: DayKey, field: 'open' | 'close', value: string) {
+    setWorkingHours((prev) => {
+      const current = prev[key]
+      if (current === 'closed') return prev
+      return { ...prev, [key]: { ...current, [field]: value } }
+    })
   }
 
   const initials = `${profile?.first_name?.[0] ?? ''}${profile?.last_name?.[0] ?? ''}`
@@ -294,22 +365,50 @@ export default function ProProfileScreen() {
         </View>
       </SectionCard>
 
-      {/* Horaires — affichage simple pour l'instant */}
+      {/* Horaires de travail */}
       <SectionCard title="HORAIRES DE TRAVAIL">
-        {DAYS.map((d) => (
-          <View key={d.key} style={styles.dayRow}>
-            <Text style={styles.dayLabel}>{d.label}</Text>
-            <Text style={styles.dayValue}>
-              {(profile?.working_hours as any)?.[d.key] === 'closed'
-                ? 'Fermé'
-                : (profile?.working_hours as any)?.[d.key]
-                  ? `${(profile?.working_hours as any)[d.key].open} – ${(profile?.working_hours as any)[d.key].close}`
-                  : '—'
-              }
-            </Text>
-          </View>
-        ))}
-        <Text style={styles.hintText}>La gestion des horaires détaillée sera disponible prochainement.</Text>
+        {DAYS.map((d) => {
+          const schedule = workingHours[d.key as DayKey]
+          const isOpen   = schedule !== 'closed'
+          return (
+            <View key={d.key} style={styles.dayRow}>
+              <View style={styles.dayToggleRow}>
+                <Switch
+                  value={isOpen}
+                  onValueChange={() => toggleDay(d.key as DayKey)}
+                  trackColor={{ false: Colors.border, true: Colors.primaryLight }}
+                  thumbColor={isOpen ? Colors.primary : Colors.textMuted}
+                />
+                <Text style={[styles.dayLabel, !isOpen && styles.dayLabelClosed]}>{d.label}</Text>
+              </View>
+              {isOpen && typeof schedule === 'object' ? (
+                <View style={styles.timeRow}>
+                  <TextInput
+                    style={styles.timeInput}
+                    value={schedule.open}
+                    onChangeText={(v) => updateDayTime(d.key as DayKey, 'open', v)}
+                    placeholder="09:00"
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="numbers-and-punctuation"
+                    maxLength={5}
+                  />
+                  <Text style={styles.timeSep}>–</Text>
+                  <TextInput
+                    style={styles.timeInput}
+                    value={schedule.close}
+                    onChangeText={(v) => updateDayTime(d.key as DayKey, 'close', v)}
+                    placeholder="18:00"
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="numbers-and-punctuation"
+                    maxLength={5}
+                  />
+                </View>
+              ) : (
+                <Text style={styles.dayClosedLabel}>Fermé</Text>
+              )}
+            </View>
+          )
+        })}
       </SectionCard>
 
       {/* Certifications */}
@@ -356,12 +455,36 @@ export default function ProProfileScreen() {
               </View>
             ))}
             {aboutQA.length < 5 && (
-              <Text style={styles.hintText}>
-                {5 - aboutQA.length} question{5 - aboutQA.length > 1 ? 's' : ''} restante{5 - aboutQA.length > 1 ? 's' : ''} — gestion complète Q&A bientôt disponible.
-              </Text>
+              <TouchableOpacity style={styles.addButton} onPress={() => setQaModalVisible(true)} activeOpacity={0.7}>
+                <Plus size={16} color={Colors.primary} />
+                <Text style={styles.addButtonText}>Ajouter une question ({aboutQA.length}/5)</Text>
+              </TouchableOpacity>
             )}
           </>
         )}
+      </SectionCard>
+
+      {/* Paiement */}
+      <SectionCard title="PAIEMENT">
+        <View style={styles.paymentRow}>
+          <View style={styles.paymentInfo}>
+            <CreditCard size={20} color={paymentConfigured ? Colors.success : Colors.textSecondary} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.paymentLabel}>Paiement configuré</Text>
+              <Text style={styles.paymentSub}>
+                {paymentConfigured
+                  ? 'Vos clients peuvent régler en ligne.'
+                  : 'Activez pour accepter les paiements en ligne.'}
+              </Text>
+            </View>
+          </View>
+          <Switch
+            value={paymentConfigured}
+            onValueChange={setPaymentConfigured}
+            trackColor={{ false: Colors.border, true: Colors.successLight }}
+            thumbColor={paymentConfigured ? Colors.success : Colors.textMuted}
+          />
+        </View>
       </SectionCard>
 
       {/* Modal ajout certification */}
@@ -413,6 +536,65 @@ export default function ProProfileScreen() {
                 activeOpacity={0.8}
               >
                 {certModalLoading
+                  ? <ActivityIndicator color={Colors.textInverse} size="small" />
+                  : <Text style={modal.confirmText}>Ajouter</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal ajout Q&A */}
+      <Modal
+        visible={qaModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setQaModalVisible(false)}
+      >
+        <View style={modal.overlay}>
+          <View style={modal.box}>
+            <Text style={modal.title}>Nouvelle question</Text>
+
+            <View style={modal.field}>
+              <Text style={modal.label}>Question *</Text>
+              <TextInput
+                style={modal.input}
+                value={qaModalQ}
+                onChangeText={setQaModalQ}
+                placeholder="Ex : Depuis combien de temps exercez-vous ?"
+                placeholderTextColor={Colors.textMuted}
+                autoFocus
+              />
+            </View>
+
+            <View style={modal.field}>
+              <Text style={modal.label}>Réponse *</Text>
+              <TextInput
+                style={[modal.input, { height: 80, textAlignVertical: 'top' }]}
+                value={qaModalA}
+                onChangeText={setQaModalA}
+                placeholder="Votre réponse..."
+                placeholderTextColor={Colors.textMuted}
+                multiline
+              />
+            </View>
+
+            <View style={modal.actions}>
+              <TouchableOpacity
+                style={modal.cancelBtn}
+                onPress={() => setQaModalVisible(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={modal.cancelText}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[modal.confirmBtn, ((!qaModalQ.trim() || !qaModalA.trim()) || qaModalLoading) && modal.btnDisabled]}
+                onPress={handleQAModalSubmit}
+                disabled={!qaModalQ.trim() || !qaModalA.trim() || qaModalLoading}
+                activeOpacity={0.8}
+              >
+                {qaModalLoading
                   ? <ActivityIndicator color={Colors.textInverse} size="small" />
                   : <Text style={modal.confirmText}>Ajouter</Text>
                 }
@@ -547,12 +729,27 @@ const styles = StyleSheet.create({
   tagTextActive: { color: Colors.primaryDark, fontWeight: Typography.semibold },
 
   dayRow: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', paddingVertical: Spacing.xs,
-    borderBottomWidth: 1, borderBottomColor: Colors.border,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingVertical: Spacing.sm, borderBottomWidth: 1, borderBottomColor: Colors.border,
+    gap: Spacing.sm,
   },
-  dayLabel: { fontSize: Typography.sm, color: Colors.textPrimary },
-  dayValue: { fontSize: Typography.sm, color: Colors.textSecondary },
+  dayToggleRow:   { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  dayLabel:       { fontSize: Typography.sm, color: Colors.textPrimary },
+  dayLabelClosed: { color: Colors.textMuted },
+  dayClosedLabel: { fontSize: Typography.xs, color: Colors.textMuted, fontStyle: 'italic' },
+  timeRow:   { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
+  timeInput: {
+    width: 56, textAlign: 'center',
+    backgroundColor: Colors.surfaceAlt, borderWidth: 1, borderColor: Colors.border,
+    borderRadius: Radius.sm, paddingVertical: 4,
+    fontSize: Typography.sm, color: Colors.textPrimary,
+  },
+  timeSep: { fontSize: Typography.sm, color: Colors.textMuted },
+
+  paymentRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md },
+  paymentInfo: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, flex: 1 },
+  paymentLabel: { fontSize: Typography.base, fontWeight: Typography.medium, color: Colors.textPrimary },
+  paymentSub:   { fontSize: Typography.xs, color: Colors.textSecondary, marginTop: 2 },
 
   listItem: {
     flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md,
