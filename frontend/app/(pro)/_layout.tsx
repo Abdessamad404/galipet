@@ -14,7 +14,7 @@ export default function ProLayout() {
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textMuted,
         tabBarLabelStyle: {
-          fontSize: Typography.xs,
+          fontSize: 9,
           fontWeight: Typography.medium,
         },
         tabBarStyle: {
@@ -54,7 +54,7 @@ export default function ProLayout() {
       <Tabs.Screen
         name="profil/index"
         options={{
-          title: 'Mon Profil',
+          title: 'Profil',
           tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
         }}
       />
