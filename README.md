@@ -10,7 +10,6 @@ Pet services marketplace for Morocco. Connects pet owners with professionals (ve
 | Backend | Node.js + Express + TypeScript + Zod |
 | Database | Supabase (PostgreSQL + Realtime + Auth) |
 | Storage | Cloudinary |
-| Deployment | Koyeb (backend) |
 
 ## Structure
 
@@ -19,7 +18,6 @@ galipet-v2/
 ├── backend/     # Express API — 3-layer: routes → controllers → services
 ├── frontend/    # Expo app — two tab navigators (owner / pro)
 ├── GUIDE.md     # Full project reference (features, patterns, decisions)
-└── CLAUDE.md    # Dev workflow + task list
 ```
 
 ## Roles
